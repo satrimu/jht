@@ -74,7 +74,7 @@ class DashboardController extends Controller
     {
         $totalMembers = User::where('id', '!=', 1)->count();
         $activeMembersThisMonth = User::where('id', '!=', 1)
-            ->whereHas('payments', function ($query) {
+            ->whereHas('payments', function ($query): void {
                 $query->whereMonth('payment_date', Carbon::now()->month)
                     ->whereYear('payment_date', Carbon::now()->year)
                     ->where('status', 'validated');
@@ -106,7 +106,7 @@ class DashboardController extends Controller
         $averageAmount = $totalPayments > 0 ? $totalAmount / $totalPayments : 0;
 
         // Breakdown by week
-        $weeklyBreakdown = Payment::whereRaw('strftime("%Y-%m", payment_date) = ?', [$currentMonth])
+        Payment::whereRaw('strftime("%Y-%m", payment_date) = ?', [$currentMonth])
             ->where('status', 'validated')
             ->selectRaw('
                 CASE 
@@ -148,8 +148,8 @@ class DashboardController extends Controller
 
         // All payments (including pending and rejected)
         $allPayments = Payment::all();
-        $totalAllAmount = $allPayments->sum('amount');
-        $totalAllCount = $allPayments->count();
+        $allPayments->sum('amount');
+        $allPayments->count();
 
         // Payment status breakdown
         $statusBreakdown = collect();
@@ -164,24 +164,22 @@ class DashboardController extends Controller
 
         // Top contributing members
         $topContributors = User::where('id', '!=', 1)
-            ->withSum(['payments as total_contribution' => function ($query) {
+            ->withSum(['payments as total_contribution' => function ($query): void {
                 $query->where('status', 'validated');
             }], 'amount')
-            ->withCount(['payments as total_payments' => function ($query) {
+            ->withCount(['payments as total_payments' => function ($query): void {
                 $query->where('status', 'validated');
             }])
             ->orderByDesc('total_contribution')
             ->limit(10)
             ->get(['id', 'full_name', 'member_number'])
-            ->map(function ($user) {
-                return [
-                    'user_id' => $user->id,
-                    'user_name' => $user->full_name,
-                    'member_number' => $user->member_number,
-                    'total_amount' => $user->total_contribution ?? 0,
-                    'payment_count' => $user->total_payments ?? 0,
-                ];
-            });
+            ->map(fn ($user): array => [
+                'user_id' => $user->id,
+                'user_name' => $user->full_name,
+                'member_number' => $user->member_number,
+                'total_amount' => $user->total_contribution ?? 0,
+                'payment_count' => $user->total_payments ?? 0,
+            ]);
 
         return [
             'totalValidatedAmount' => $totalValidatedAmount,
@@ -239,7 +237,7 @@ class DashboardController extends Controller
     {
         $today = Carbon::today();
         $thisWeek = Carbon::now()->startOfWeek();
-        $thisMonth = Carbon::now()->startOfMonth();
+        Carbon::now()->startOfMonth();
 
         return [
             'todayPayments' => Payment::whereDate('payment_date', $today)->where('status', 'validated')->count(),
@@ -311,17 +309,15 @@ class DashboardController extends Controller
             ->orderByDesc('created_at')
             ->limit(10)
             ->get()
-            ->map(function ($payment) {
-                return [
-                    'id' => $payment->id,
-                    'user_name' => $payment->user->full_name ?? 'Unknown User',
-                    'member_number' => $payment->user->member_number ?? '-',
-                    'amount' => $payment->amount,
-                    'payment_date' => $payment->payment_date,
-                    'status' => $payment->status,
-                    'created_at' => $payment->created_at->format('Y-m-d H:i:s'),
-                ];
-            })
+            ->map(fn ($payment): array => [
+                'id' => $payment->id,
+                'user_name' => $payment->user->full_name ?? 'Unknown User',
+                'member_number' => $payment->user->member_number ?? '-',
+                'amount' => $payment->amount,
+                'payment_date' => $payment->payment_date,
+                'status' => $payment->status,
+                'created_at' => $payment->created_at->format('Y-m-d H:i:s'),
+            ])
             ->toArray();
     }
 }
