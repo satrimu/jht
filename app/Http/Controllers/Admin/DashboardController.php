@@ -7,7 +7,6 @@ use App\Models\Payment;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -77,8 +76,8 @@ class DashboardController extends Controller
         $activeMembersThisMonth = User::where('id', '!=', 1)
             ->whereHas('payments', function ($query) {
                 $query->whereMonth('payment_date', Carbon::now()->month)
-                      ->whereYear('payment_date', Carbon::now()->year)
-                      ->where('status', 'validated');
+                    ->whereYear('payment_date', Carbon::now()->year)
+                    ->where('status', 'validated');
             })
             ->count();
 
@@ -153,23 +152,14 @@ class DashboardController extends Controller
         $totalAllCount = $allPayments->count();
 
         // Payment status breakdown
-        $statusBreakdown = Payment::selectRaw('status, COUNT(*) as count, SUM(amount) as total')
-            ->groupBy('status')
-            ->get()
-            ->keyBy('status')
-            ->map(function ($item) {
-                return [
-                    'count' => $item->count,
-                    'amount' => $item->total,
-                ];
-            });
+        $statusBreakdown = collect();
+        $statuses = ['validated', 'pending', 'rejected'];
 
-        // Ensure all statuses are present
-        $allStatuses = ['validated', 'pending', 'rejected'];
-        foreach ($allStatuses as $status) {
-            if (!$statusBreakdown->has($status)) {
-                $statusBreakdown[$status] = ['count' => 0, 'amount' => 0];
-            }
+        foreach ($statuses as $status) {
+            $statusBreakdown->put($status, [
+                'count' => Payment::where('status', $status)->count(),
+                'amount' => (float) Payment::where('status', $status)->sum('amount'),
+            ]);
         }
 
         // Top contributing members
@@ -211,7 +201,7 @@ class DashboardController extends Controller
 
         while ($current->lte($endDate)) {
             $monthKey = $current->format('Y-m');
-            
+
             $monthlyData = Payment::whereRaw('strftime("%Y-%m", payment_date) = ?', [$monthKey])
                 ->where('status', 'validated')
                 ->selectRaw('COUNT(*) as count, SUM(amount) as total')
@@ -219,8 +209,8 @@ class DashboardController extends Controller
 
             $chartData[] = [
                 'month' => $current->format('M Y'),
-                'amount' => $monthlyData->total ?? 0,
-                'count' => $monthlyData->count ?? 0,
+                'amount' => (float) ($monthlyData->total ?? 0),
+                'count' => (int) ($monthlyData->count ?? 0),
             ];
 
             $current->addMonth();
@@ -254,13 +244,13 @@ class DashboardController extends Controller
         return [
             'todayPayments' => Payment::whereDate('payment_date', $today)->where('status', 'validated')->count(),
             'todayAmount' => Payment::whereDate('payment_date', $today)->where('status', 'validated')->sum('amount'),
-            
+
             'thisWeekPayments' => Payment::where('payment_date', '>=', $thisWeek)->where('status', 'validated')->count(),
             'thisWeekAmount' => Payment::where('payment_date', '>=', $thisWeek)->where('status', 'validated')->sum('amount'),
-            
+
             'pendingPayments' => Payment::where('status', 'pending')->count(),
             'pendingAmount' => Payment::where('status', 'pending')->sum('amount'),
-            
+
             'rejectedPayments' => Payment::where('status', 'rejected')->count(),
             'rejectedAmount' => Payment::where('status', 'rejected')->sum('amount'),
         ];
@@ -274,12 +264,12 @@ class DashboardController extends Controller
         $currentYear = Carbon::now()->year;
         $currentMonth = Carbon::now()->month;
         $chartData = [];
-        
+
         // Generate data for each month from January to current month
         for ($month = 1; $month <= $currentMonth; $month++) {
             $monthKey = sprintf('%d-%02d', $currentYear, $month);
             $monthName = Carbon::createFromDate($currentYear, $month, 1)->format('M');
-            
+
             $monthlyData = Payment::whereRaw('strftime("%Y-%m", payment_date) = ?', [$monthKey])
                 ->where('status', 'validated')
                 ->selectRaw('COUNT(*) as count, SUM(amount) as total')
@@ -288,8 +278,8 @@ class DashboardController extends Controller
             $chartData[] = [
                 'month' => $monthName,
                 'monthFull' => Carbon::createFromDate($currentYear, $month, 1)->format('F Y'),
-                'totalPayments' => $monthlyData->count ?? 0,
-                'totalAmount' => $monthlyData->total ?? 0,
+                'totalPayments' => (int) ($monthlyData->count ?? 0),
+                'totalAmount' => (float) ($monthlyData->total ?? 0),
             ];
         }
 

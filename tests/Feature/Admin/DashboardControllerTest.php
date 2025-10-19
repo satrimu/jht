@@ -6,10 +6,10 @@ use Carbon\Carbon;
 
 beforeEach(function () {
     $this->admin = User::factory()->create(['role' => 'admin']);
-    
+
     // Create some test users and payments
     $this->users = User::factory()->count(10)->create();
-    
+
     // Create payments for current month
     $currentMonth = Carbon::now();
     foreach ($this->users as $user) {
@@ -20,7 +20,7 @@ beforeEach(function () {
             'amount' => 100000,
         ]);
     }
-    
+
     // Create some payments for previous months
     for ($i = 1; $i <= 6; $i++) {
         $pastMonth = Carbon::now()->subMonths($i);
@@ -179,7 +179,7 @@ it('includes recent payments data', function () {
 it('handles empty data gracefully', function () {
     // Clear all payments
     Payment::truncate();
-    
+
     // Clear all users except admin
     User::where('id', '!=', $this->admin->id)->delete();
 
