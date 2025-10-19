@@ -1,14 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from '@/components/ui/pagination';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     Table,
     TableBody,
@@ -18,7 +10,6 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
 import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 import CreateUserModal from './CreateUserModal';
@@ -54,6 +45,11 @@ interface UsersIndexProps {
         total: number;
         prev_page_url: string | null;
         next_page_url: string | null;
+        links: Array<{
+            url: string | null;
+            label: string;
+            active: boolean;
+        }>;
     };
     breadcrumbs: Array<{
         title: string;
@@ -196,88 +192,24 @@ export default function Index({ users, breadcrumbs }: UsersIndexProps) {
                 </Table>
 
                 {/* Pagination */}
-                {users.last_page > 1 && (
-                    <Pagination className="mt-6">
-                        <PaginationContent>
-                            <PaginationItem>
-                                <PaginationPrevious
-                                    href={users.prev_page_url || '#'}
-                                    className={
-                                        users.current_page === 1
-                                            ? 'pointer-events-none opacity-50'
-                                            : ''
-                                    }
-                                />
-                            </PaginationItem>
 
-                            {/* Page numbers */}
-                            {Array.from(
-                                { length: users.last_page },
-                                (_, i) => i + 1,
-                            )
-                                .filter((page) => {
-                                    const current = users.current_page;
-                                    // Show first page, last page, current page, and pages around current
-                                    return (
-                                        page === 1 ||
-                                        page === users.last_page ||
-                                        (page >= current - 1 &&
-                                            page <= current + 1)
-                                    );
-                                })
-                                .map((page, index, array) => {
-                                    // Add ellipsis if there's a gap
-                                    const prevPage = array[index - 1];
-                                    if (prevPage && page - prevPage > 1) {
-                                        return (
-                                            <React.Fragment
-                                                key={`ellipsis-${page}`}
-                                            >
-                                                <PaginationItem>
-                                                    <PaginationEllipsis />
-                                                </PaginationItem>
-                                                <PaginationItem>
-                                                    <PaginationLink
-                                                        href={`/admin/users?page=${page}`}
-                                                        isActive={
-                                                            page ===
-                                                            users.current_page
-                                                        }
-                                                    >
-                                                        {page}
-                                                    </PaginationLink>
-                                                </PaginationItem>
-                                            </React.Fragment>
-                                        );
-                                    }
+                        {/* Pagination */}
+                        {users.links.length > 1 && (
+                            <div className="flex flex-wrap justify-center gap-2 pt-6">
+                                {users.links.map((link: { url: string | null; label: string; active: boolean }, i: number) => (
+                                    <Button
+                                        key={i}
+                                        disabled={!link.url}
+                                        variant={link.active ? 'default' : 'outline'}
+                                        size="sm"
+                                        onClick={() => router.visit(link.url || '', { preserveScroll: true })}
+                                    >
+                                        <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                    </Button>
+                                ))}
+                            </div>
+                        )}
 
-                                    return (
-                                        <PaginationItem key={page}>
-                                            <PaginationLink
-                                                href={`/admin/users?page=${page}`}
-                                                isActive={
-                                                    page === users.current_page
-                                                }
-                                            >
-                                                {page}
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                    );
-                                })}
-
-                            <PaginationItem>
-                                <PaginationNext
-                                    href={users.next_page_url || '#'}
-                                    className={
-                                        users.current_page === users.last_page
-                                            ? 'pointer-events-none opacity-50'
-                                            : ''
-                                    }
-                                />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
-                )}
 
                 {/* Modals */}
                 <CreateUserModal
