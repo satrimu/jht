@@ -3,12 +3,12 @@
 namespace App\Services;
 
 use Exception;
-use Log;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Imagick\Driver;
 use Intervention\Image\ImageManager;
+use Log;
 
 class ImageService
 {
@@ -21,8 +21,6 @@ class ImageService
 
     /**
      * Process and store an uploaded image (converts to WebP)
-     *
-     * @return string|false
      */
     public function processImage(
         UploadedFile $file,

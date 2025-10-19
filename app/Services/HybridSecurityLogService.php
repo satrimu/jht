@@ -17,10 +17,10 @@
 
 namespace App\Services;
 
-use DB;
-use Illuminate\Pagination\Paginator;
 use App\Models\SecurityLogCache;
 use Carbon\Carbon;
+use DB;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use ZipArchive;
@@ -397,6 +397,7 @@ class HybridSecurityLogService
         if (! empty($filters['user_id']) && in_array(preg_match('/USER:'.$filters['user_id'].'/', $line), [0, false], true)) {
             return false;
         }
-        return !(! empty($filters['action']) && in_array(preg_match('/'.$filters['action'].'/', $line), [0, false], true));
+
+        return ! (! empty($filters['action']) && in_array(preg_match('/'.$filters['action'].'/', $line), [0, false], true));
     }
 }

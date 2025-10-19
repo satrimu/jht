@@ -51,7 +51,7 @@ class SeoHelper
      */
     public static function getConfig(): ?SettingApp
     {
-        return Cache::remember('app_config', now()->addDay(), fn(): ?SettingApp => SettingApp::first());
+        return Cache::remember('app_config', now()->addDay(), fn (): ?SettingApp => SettingApp::first());
     }
 
     /**

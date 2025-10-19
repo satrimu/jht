@@ -2,9 +2,9 @@
 
 namespace App\Observers;
 
-use Log;
 use App\Models\SettingApp;
 use Illuminate\Support\Facades\Cache;
+use Log;
 
 class SettingAppObserver
 {

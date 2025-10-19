@@ -16,9 +16,10 @@ class PaymentSeeder extends Seeder
     {
         // Pastikan users exist terlebih dahulu
         $users = User::whereBetween('id', [2, 51])->get();
-        
+
         if ($users->isEmpty()) {
             $this->command->warn('No users found with ID between 2-51. Please run UserSeeder first.');
+
             return;
         }
 
@@ -42,7 +43,7 @@ class PaymentSeeder extends Seeder
             foreach ($months as $month) {
                 // Tentukan tanggal pembayaran random dalam bulan tersebut
                 $paymentDate = $month->copy()->addDays(rand(1, min(28, $month->daysInMonth)));
-                
+
                 // Pastikan tanggal pembayaran tidak melebihi hari ini
                 if ($paymentDate->gt(Carbon::now())) {
                     continue;
@@ -84,7 +85,7 @@ class PaymentSeeder extends Seeder
         }
 
         $this->command->info("✅ PaymentSeeder completed! Created {$totalPayments} payments for {$users->count()} users.");
-        
+
         // Summary statistics
         $this->displaySummary();
     }
@@ -101,20 +102,35 @@ class PaymentSeeder extends Seeder
         if ($daysSincePayment > 60) {
             // 90% validated, 8% rejected, 2% pending
             $rand = rand(1, 100);
-            if ($rand <= 90) return 'validated';
-            if ($rand <= 98) return 'rejected';
+            if ($rand <= 90) {
+                return 'validated';
+            }
+            if ($rand <= 98) {
+                return 'rejected';
+            }
+
             return 'pending';
         } elseif ($daysSincePayment > 30) {
             // 80% validated, 15% rejected, 5% pending
             $rand = rand(1, 100);
-            if ($rand <= 80) return 'validated';
-            if ($rand <= 95) return 'rejected';
+            if ($rand <= 80) {
+                return 'validated';
+            }
+            if ($rand <= 95) {
+                return 'rejected';
+            }
+
             return 'pending';
         } else {
             // Pembayaran baru: 60% validated, 10% rejected, 30% pending
             $rand = rand(1, 100);
-            if ($rand <= 60) return 'validated';
-            if ($rand <= 70) return 'rejected';
+            if ($rand <= 60) {
+                return 'validated';
+            }
+            if ($rand <= 70) {
+                return 'rejected';
+            }
+
             return 'pending';
         }
     }
@@ -127,7 +143,7 @@ class PaymentSeeder extends Seeder
         $prefix = 'payment';
         $timestamp = $date->format('Ymd');
         $randomStr = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz0123456789'), 0, 8);
-        
+
         return "{$prefix}_{$userId}_{$timestamp}_{$randomStr}.webp";
     }
 
@@ -143,7 +159,7 @@ class PaymentSeeder extends Seeder
 
         $notes = [
             'validated' => [
-                'Pembayaran iuran bulan ' . $paymentDate->format('F Y'),
+                'Pembayaran iuran bulan '.$paymentDate->format('F Y'),
                 'Transfer bank confirmed',
                 'Iuran bulanan - terverifikasi',
                 'Pembayaran tepat waktu',
@@ -166,6 +182,7 @@ class PaymentSeeder extends Seeder
         ];
 
         $statusNotes = $notes[$status] ?? $notes['pending'];
+
         return $statusNotes[array_rand($statusNotes)];
     }
 
@@ -178,7 +195,7 @@ class PaymentSeeder extends Seeder
         $validated = Payment::where('status', 'validated')->count();
         $pending = Payment::where('status', 'pending')->count();
         $rejected = Payment::where('status', 'rejected')->count();
-        
+
         $totalAmount = Payment::where('status', 'validated')->sum('amount');
         $avgAmount = Payment::avg('amount');
 
@@ -187,9 +204,9 @@ class PaymentSeeder extends Seeder
         $this->command->info("✅ Validated: {$validated}");
         $this->command->info("⏳ Pending: {$pending}");
         $this->command->info("❌ Rejected: {$rejected}");
-        $this->command->info("💰 Total Validated Amount: " . number_format($totalAmount, 0, ',', '.'));
-        $this->command->info("📈 Average Amount: " . number_format($avgAmount, 0, ',', '.'));
-        
+        $this->command->info('💰 Total Validated Amount: '.number_format($totalAmount, 0, ',', '.'));
+        $this->command->info('📈 Average Amount: '.number_format($avgAmount, 0, ',', '.'));
+
         // Monthly breakdown
         $this->command->info("\n📅 Monthly Breakdown:");
         $monthlyStats = Payment::selectRaw('strftime("%Y-%m", payment_date) as month, COUNT(*) as count, SUM(amount) as total')
@@ -199,7 +216,7 @@ class PaymentSeeder extends Seeder
 
         foreach ($monthlyStats as $stat) {
             $monthName = Carbon::createFromFormat('Y-m', $stat->month)->format('F Y');
-            $this->command->info("  {$monthName}: {$stat->count} payments, " . number_format($stat->total, 0, ',', '.'));
+            $this->command->info("  {$monthName}: {$stat->count} payments, ".number_format($stat->total, 0, ',', '.'));
         }
     }
 }

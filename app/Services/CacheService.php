@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use Illuminate\Cache\TaggableStore;
-use DateTimeInterface;
-use DateInterval;
 use Closure;
+use DateInterval;
+use DateTimeInterface;
+use Illuminate\Cache\TaggableStore;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -36,7 +36,7 @@ class CacheService
     /**
      * Remember users list using tags when available, otherwise plain remember.
      *
-     * @param int|DateTimeInterface|DateInterval $ttl
+     * @param  int|DateTimeInterface|DateInterval  $ttl
      * @return mixed
      */
     public function rememberUsersList(int $page, int $perPage, $ttl, Closure $callback)

@@ -32,6 +32,7 @@ class SettingApp extends Model
         if (Storage::disk('public')->exists('images/'.$image)) {
             return asset('storage/images/'.$image);
         }
+
         return null;
 
     }

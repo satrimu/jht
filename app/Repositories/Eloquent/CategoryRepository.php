@@ -73,7 +73,7 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function searchByName(string $name): Collection
     {
-        return Category::where('name', 'like', '%' . $name . '%')
+        return Category::where('name', 'like', '%'.$name.'%')
             ->orderBy('name')
             ->get();
     }

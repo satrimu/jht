@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Exception;
-use Throwable;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Users\StoreUserRequest;
 use App\Http\Requests\Admin\Users\UpdateUserRequest;
 use App\Models\User;
 use App\Services\CacheService;
 use App\Services\ImageService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Throwable;
 
 class UserController extends Controller
 {
@@ -24,7 +24,7 @@ class UserController extends Controller
         $page = (int) $request->get('page', 1);
 
         // Cache for 5 minutes (300 seconds) to reduce database load
-        $users = $this->cacheService->rememberUsersList($page, $perPage, 300, fn() => User::select([
+        $users = $this->cacheService->rememberUsersList($page, $perPage, 300, fn () => User::select([
             'id',
             'name',
             'email',

@@ -2,18 +2,18 @@
 
 namespace App\Providers;
 
-use App\Services\ImageService;
-use App\Repositories\Contracts\CategoryRepositoryInterface;
-use App\Repositories\Eloquent\CategoryRepository;
-use App\Repositories\Contracts\PaymentRepositoryInterface;
-use App\Repositories\Eloquent\PaymentRepository;
 use App\Models\Category;
-use App\Policies\CategoryPolicy;
 use App\Models\Payment;
-use App\Policies\PaymentPolicy;
 use App\Models\SettingApp;
 use App\Observers\GlobalActivityLogger;
 use App\Observers\SettingAppObserver;
+use App\Policies\CategoryPolicy;
+use App\Policies\PaymentPolicy;
+use App\Repositories\Contracts\CategoryRepositoryInterface;
+use App\Repositories\Contracts\PaymentRepositoryInterface;
+use App\Repositories\Eloquent\CategoryRepository;
+use App\Repositories\Eloquent\PaymentRepository;
+use App\Services\ImageService;
 use App\Services\SecurityLogService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Bind SecurityLogService as singleton
-        $this->app->singleton(SecurityLogService::class, fn($app): SecurityLogService => new SecurityLogService);
+        $this->app->singleton(SecurityLogService::class, fn ($app): SecurityLogService => new SecurityLogService);
 
         // Bind ImageService as singleton
         $this->app->singleton(ImageService::class);
@@ -56,7 +56,7 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        Gate::define('admin', fn($user): bool => auth()->check() && auth()->user()->role === 'admin');
+        Gate::define('admin', fn ($user): bool => auth()->check() && auth()->user()->role === 'admin');
 
         // Register Category Policy
         Gate::policy(Category::class, CategoryPolicy::class);

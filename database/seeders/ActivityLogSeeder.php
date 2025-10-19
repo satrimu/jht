@@ -122,6 +122,7 @@ class ActivityLogSeeder extends Seeder
             // 70% chance to skip weekend
             if (($currentDate->dayOfWeek === 0 || $currentDate->dayOfWeek === 6) && rand(1, 100) <= 70) {
                 $currentDate->subHours(random_int(12, 36));
+
                 continue;
             }
 

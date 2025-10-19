@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Exception;
 use App\Services\SecurityLogService;
+use Exception;
 use Illuminate\Console\Command;
 
 class ArchiveSecurityLogs extends Command
