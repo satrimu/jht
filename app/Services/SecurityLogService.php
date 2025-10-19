@@ -75,7 +75,7 @@ class SecurityLogService
         }
 
         // Sort by date descending
-        usort($archives, fn (array $a, array $b): int => strtotime((string) $b['created_at']) - strtotime((string) $a['created_at']));
+        usort($archives, fn (array $a, array $b): int => strtotime($b['created_at']) - strtotime($a['created_at']));
 
         return $archives;
     }
@@ -286,7 +286,7 @@ class SecurityLogService
         $zip->close();
 
         // Sort by datetime descending
-        usort($logs, fn (array $a, array $b): int => strtotime((string) $b['datetime']) - strtotime((string) $a['datetime']));
+        usort($logs, fn (array $a, array $b): int => strtotime($b['datetime']) - strtotime($a['datetime']));
 
         $total = count($logs);
         $pages = ceil($total / $perPage);

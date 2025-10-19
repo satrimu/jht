@@ -42,7 +42,7 @@ class PaymentSeeder extends Seeder
         foreach ($users as $user) {
             foreach ($months as $month) {
                 // Tentukan tanggal pembayaran random dalam bulan tersebut
-                $paymentDate = $month->copy()->addDays(rand(1, min(28, $month->daysInMonth)));
+                $paymentDate = $month->copy()->addDays(random_int(1, min(28, $month->daysInMonth)));
 
                 // Pastikan tanggal pembayaran tidak melebihi hari ini
                 if ($paymentDate->gt(Carbon::now())) {
@@ -51,14 +51,14 @@ class PaymentSeeder extends Seeder
 
                 // Tentukan amount (iuran bulanan)
                 $baseAmount = 100000; // IDR 100,000 base
-                $variation = rand(-10000, 20000); // Variasi ±10k to +20k
+                $variation = random_int(-10000, 20000); // Variasi ±10k to +20k
                 $amount = $baseAmount + $variation;
 
                 // Tentukan status pembayaran
                 $status = $this->determinePaymentStatus($paymentDate);
 
                 // Tentukan apakah ada bukti pembayaran (image)
-                $hasImage = rand(1, 100) <= 85; // 85% kemungkinan ada image
+                $hasImage = random_int(1, 100) <= 85; // 85% kemungkinan ada image
                 $image = $hasImage ? $this->generateImageFilename($user->id, $paymentDate) : null;
 
                 // Buat notes untuk beberapa pembayaran
@@ -71,8 +71,8 @@ class PaymentSeeder extends Seeder
                     'status' => $status,
                     'notes' => $notes,
                     'image' => $image,
-                    'created_at' => $paymentDate->copy()->addHours(rand(1, 6)),
-                    'updated_at' => $paymentDate->copy()->addHours(rand(1, 6)),
+                    'created_at' => $paymentDate->copy()->addHours(random_int(1, 6)),
+                    'updated_at' => $paymentDate->copy()->addHours(random_int(1, 6)),
                 ]);
 
                 $totalPayments++;
@@ -97,11 +97,10 @@ class PaymentSeeder extends Seeder
     {
         $now = Carbon::now();
         $daysSincePayment = $paymentDate->diffInDays($now);
-
         // Pembayaran lama lebih likely sudah divalidasi
         if ($daysSincePayment > 60) {
             // 90% validated, 8% rejected, 2% pending
-            $rand = rand(1, 100);
+            $rand = random_int(1, 100);
             if ($rand <= 90) {
                 return 'validated';
             }
@@ -110,9 +109,12 @@ class PaymentSeeder extends Seeder
             }
 
             return 'pending';
-        } elseif ($daysSincePayment > 30) {
+        }
+
+        // Pembayaran lama lebih likely sudah divalidasi
+        if ($daysSincePayment > 30) {
             // 80% validated, 15% rejected, 5% pending
-            $rand = rand(1, 100);
+            $rand = random_int(1, 100);
             if ($rand <= 80) {
                 return 'validated';
             }
@@ -121,18 +123,17 @@ class PaymentSeeder extends Seeder
             }
 
             return 'pending';
-        } else {
-            // Pembayaran baru: 60% validated, 10% rejected, 30% pending
-            $rand = rand(1, 100);
-            if ($rand <= 60) {
-                return 'validated';
-            }
-            if ($rand <= 70) {
-                return 'rejected';
-            }
-
-            return 'pending';
         }
+        // Pembayaran baru: 60% validated, 10% rejected, 30% pending
+        $rand = random_int(1, 100);
+        if ($rand <= 60) {
+            return 'validated';
+        }
+        if ($rand <= 70) {
+            return 'rejected';
+        }
+
+        return 'pending';
     }
 
     /**
@@ -153,7 +154,7 @@ class PaymentSeeder extends Seeder
     private function generateNotes(?string $status, Carbon $paymentDate): ?string
     {
         // 40% kemungkinan ada notes
-        if (rand(1, 100) > 40) {
+        if (random_int(1, 100) > 40) {
             return null;
         }
 

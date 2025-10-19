@@ -2,14 +2,13 @@ import AppLogo from '@/components/app-logo';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login } from '@/routes';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
     CheckCircle,
     Code2,
     Facebook,
-    Github,
     Instagram,
     Palette,
     Settings,
@@ -17,7 +16,6 @@ import {
     Sparkles,
     Users,
     Youtube,
-    Zap,
 } from 'lucide-react';
 
 export default function Home() {
@@ -27,7 +25,9 @@ export default function Home() {
         <>
             <Head
                 title={
-                    setting?.nama_app ? `${setting.nama_app} - Home` : 'Home'
+                    setting?.nama_app
+                        ? `${setting.nama_app} - Jaminan Hari Tua`
+                        : 'Jaminan Hari Tua (JHT)'
                 }
             >
                 <meta
@@ -61,11 +61,11 @@ export default function Home() {
                                         <Button asChild variant="ghost">
                                             <Link href={login()}>Login</Link>
                                         </Button>
-                                        <Button asChild>
+                                        {/* <Button asChild>
                                             <Link href={register()}>
                                                 Get Started
                                             </Link>
-                                        </Button>
+                                        </Button> */}
                                     </>
                                 )}
                             </div>
@@ -82,28 +82,28 @@ export default function Home() {
                                 className="px-4 py-2 text-sm font-medium"
                             >
                                 <Sparkles className="mr-2 h-4 w-4" />
-                                Laravel 12 + React 19 + Inertia.js
+                                Sistem Manajemen Iuran Jaminan Hari Tua
                             </Badge>
                         </div>
 
                         <h1 className="mb-6 text-5xl font-bold tracking-tight text-slate-900 lg:text-6xl dark:text-white">
-                            Modern Fullstack
+                            Aplikasi Jaminan
                             <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
-                                Starter Kit
+                                Hari Tua (JHT)
                             </span>
                         </h1>
 
                         <p className="mb-10 text-xl leading-8 text-slate-600 dark:text-slate-300">
-                            Starter kit fullstack modern yang menggabungkan
-                            Laravel 12, React 19, dan Inertia.js dengan fokus
-                            pada pemisahan yang jelas antara admin panel dan
-                            public site.
+                            Sistem manajemen iuran rutin bulanan untuk program
+                            Jaminan Hari Tua. Kelola pembayaran anggota,
+                            validasi admin, dan laporan keuangan yang akurat.
                         </p>
 
                         <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
                             {!auth.user && (
                                 <>
-                                    <Button
+                                    {/* Register disabled - only admins can create users */}
+                                    {/* <Button
                                         asChild
                                         size="lg"
                                         className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
@@ -112,7 +112,7 @@ export default function Home() {
                                             <Zap className="mr-2 h-5 w-5" />
                                             Start Building
                                         </Link>
-                                    </Button>
+                                    </Button> */}
                                     <Button asChild size="lg" variant="outline">
                                         <Link href={login()}>
                                             Login to Dashboard
@@ -141,11 +141,11 @@ export default function Home() {
                     <div className="mx-auto max-w-6xl">
                         <div className="mb-12 text-center">
                             <h2 className="mb-4 text-3xl font-bold text-slate-900 dark:text-white">
-                                Tech Stack Modern
+                                Fitur Utama Aplikasi JHT
                             </h2>
                             <p className="text-lg text-slate-600 dark:text-slate-300">
-                                Dibangun dengan teknologi terdepan untuk
-                                performa dan developer experience yang optimal
+                                Kelola iuran anggota, validasi pembayaran, dan
+                                monitoring program Jaminan Hari Tua dengan mudah
                             </p>
                         </div>
 
@@ -155,17 +155,17 @@ export default function Home() {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <h3 className="font-semibold text-slate-900 dark:text-white">
-                                                Laravel 12
+                                                Manajemen Anggota
                                             </h3>
                                             <p className="text-sm text-slate-600 dark:text-slate-400">
-                                                Backend
+                                                Kelola data anggota JHT
                                             </p>
                                         </div>
                                         <Badge
-                                            className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
+                                            className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
                                             variant="secondary"
                                         >
-                                            Latest
+                                            Lengkap
                                         </Badge>
                                     </div>
                                 </CardContent>
@@ -176,38 +176,17 @@ export default function Home() {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <h3 className="font-semibold text-slate-900 dark:text-white">
-                                                React 19
+                                                Setoran Iuran
                                             </h3>
                                             <p className="text-sm text-slate-600 dark:text-slate-400">
-                                                Frontend
-                                            </p>
-                                        </div>
-                                        <Badge
-                                            className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
-                                            variant="secondary"
-                                        >
-                                            Latest
-                                        </Badge>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="border-0 bg-white/50 backdrop-blur-sm dark:bg-slate-800/50">
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="font-semibold text-slate-900 dark:text-white">
-                                                TypeScript
-                                            </h3>
-                                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                                                Language
+                                                Upload bukti pembayaran
                                             </p>
                                         </div>
                                         <Badge
                                             className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
                                             variant="secondary"
                                         >
-                                            Latest
+                                            Online
                                         </Badge>
                                     </div>
                                 </CardContent>
@@ -218,17 +197,17 @@ export default function Home() {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <h3 className="font-semibold text-slate-900 dark:text-white">
-                                                Inertia.js
+                                                Validasi Admin
                                             </h3>
                                             <p className="text-sm text-slate-600 dark:text-slate-400">
-                                                Framework
+                                                Approve/reject pembayaran
                                             </p>
                                         </div>
                                         <Badge
                                             className="bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400"
                                             variant="secondary"
                                         >
-                                            Latest
+                                            Aman
                                         </Badge>
                                     </div>
                                 </CardContent>
@@ -239,17 +218,17 @@ export default function Home() {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <h3 className="font-semibold text-slate-900 dark:text-white">
-                                                Tailwind CSS
+                                                Dashboard Laporan
                                             </h3>
                                             <p className="text-sm text-slate-600 dark:text-slate-400">
-                                                Styling
+                                                Monitoring & statistik
                                             </p>
                                         </div>
                                         <Badge
                                             className="bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400"
                                             variant="secondary"
                                         >
-                                            Latest
+                                            Real-time
                                         </Badge>
                                     </div>
                                 </CardContent>
@@ -260,17 +239,38 @@ export default function Home() {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <h3 className="font-semibold text-slate-900 dark:text-white">
-                                                shadcn/ui
+                                                Laporan Individual
                                             </h3>
                                             <p className="text-sm text-slate-600 dark:text-slate-400">
-                                                Components
+                                                Riwayat iuran per anggota
+                                            </p>
+                                        </div>
+                                        <Badge
+                                            className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400"
+                                            variant="secondary"
+                                        >
+                                            Detail
+                                        </Badge>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="border-0 bg-white/50 backdrop-blur-sm dark:bg-slate-800/50">
+                                <CardContent className="p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="font-semibold text-slate-900 dark:text-white">
+                                                Laporan General
+                                            </h3>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                                                Laporan keseluruhan sistem
                                             </p>
                                         </div>
                                         <Badge
                                             className="bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
                                             variant="secondary"
                                         >
-                                            Latest
+                                            Komprehensif
                                         </Badge>
                                     </div>
                                 </CardContent>
@@ -284,11 +284,11 @@ export default function Home() {
                     <div className="mx-auto max-w-6xl">
                         <div className="mb-12 text-center">
                             <h2 className="mb-4 text-3xl font-bold text-slate-900 dark:text-white">
-                                Fitur Lengkap & Powerful
+                                Fitur Unggulan JHT
                             </h2>
                             <p className="text-lg text-slate-600 dark:text-slate-300">
-                                Semua yang Anda butuhkan untuk membangun
-                                aplikasi web modern
+                                Sistem lengkap untuk mengelola program Jaminan
+                                Hari Tua dengan fitur modern dan aman
                             </p>
                         </div>
 
@@ -296,87 +296,58 @@ export default function Home() {
                             <Card className="border-0 bg-white shadow-lg dark:bg-slate-800">
                                 <CardContent className="p-8">
                                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600">
-                                        <Shield className="h-6 w-6 text-white" />
-                                    </div>
-                                    <h3 className="mb-3 text-xl font-semibold text-slate-900 dark:text-white">
-                                        Authentication System
-                                    </h3>
-                                    <p className="mb-4 text-slate-600 dark:text-slate-300">
-                                        Complete auth with 2FA, password reset,
-                                        dan email verification menggunakan
-                                        Laravel Fortify
-                                    </p>
-                                    <div className="flex flex-wrap gap-2">
-                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            Two-Factor Auth
-                                        </div>
-                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            Password Reset
-                                        </div>
-                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            Email Verification
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="border-0 bg-white shadow-lg dark:bg-slate-800">
-                                <CardContent className="p-8">
-                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600">
-                                        <Palette className="h-6 w-6 text-white" />
-                                    </div>
-                                    <h3 className="mb-3 text-xl font-semibold text-slate-900 dark:text-white">
-                                        Modern UI/UX
-                                    </h3>
-                                    <p className="mb-4 text-slate-600 dark:text-slate-300">
-                                        Responsive design dengan dark mode
-                                        support dan component-based architecture
-                                    </p>
-                                    <div className="flex flex-wrap gap-2">
-                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            Dark Mode
-                                        </div>
-                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            Mobile-First
-                                        </div>
-                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            Accessibility
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="border-0 bg-white shadow-lg dark:bg-slate-800">
-                                <CardContent className="p-8">
-                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600">
                                         <Users className="h-6 w-6 text-white" />
                                     </div>
                                     <h3 className="mb-3 text-xl font-semibold text-slate-900 dark:text-white">
-                                        Admin Panel
+                                        Manajemen Anggota Terintegrasi
                                     </h3>
                                     <p className="mb-4 text-slate-600 dark:text-slate-300">
-                                        Dashboard lengkap dengan sidebar
-                                        navigation, user management, dan
-                                        activity logging
+                                        Sistem lengkap untuk mengelola data
+                                        anggota JHT dengan profil lengkap dan
+                                        riwayat pembayaran
                                     </p>
                                     <div className="flex flex-wrap gap-2">
                                         <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                                             <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            Dashboard
+                                            Registrasi Online
                                         </div>
                                         <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                                             <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            User Management
+                                            Profil Lengkap
                                         </div>
                                         <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                                             <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            Activity Logs
+                                            Riwayat Aktivitas
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="border-0 bg-white shadow-lg dark:bg-slate-800">
+                                <CardContent className="p-8">
+                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600">
+                                        <Shield className="h-6 w-6 text-white" />
+                                    </div>
+                                    <h3 className="mb-3 text-xl font-semibold text-slate-900 dark:text-white">
+                                        Sistem Pembayaran Aman
+                                    </h3>
+                                    <p className="mb-4 text-slate-600 dark:text-slate-300">
+                                        Proses setoran iuran dengan upload bukti
+                                        pembayaran dan validasi admin untuk
+                                        keamanan maksimal
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
+                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+                                            Upload Bukti Bayar
+                                        </div>
+                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
+                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+                                            Validasi Admin
+                                        </div>
+                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
+                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+                                            Status Real-time
                                         </div>
                                     </div>
                                 </CardContent>
@@ -388,24 +359,56 @@ export default function Home() {
                                         <Settings className="h-6 w-6 text-white" />
                                     </div>
                                     <h3 className="mb-3 text-xl font-semibold text-slate-900 dark:text-white">
-                                        Advanced Features
+                                        Dashboard Admin Lengkap
                                     </h3>
                                     <p className="mb-4 text-slate-600 dark:text-slate-300">
-                                        Image processing, backup system, dan
-                                        configuration management yang powerful
+                                        Panel admin dengan fitur validasi
+                                        pembayaran, input manual, dan laporan
+                                        komprehensif untuk monitoring program
                                     </p>
                                     <div className="flex flex-wrap gap-2">
                                         <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                                             <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            Image Processing
+                                            Validasi Pembayaran
                                         </div>
                                         <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                                             <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            Auto Backup
+                                            Input Manual
                                         </div>
                                         <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                                             <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
-                                            Configuration
+                                            Laporan Detail
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="border-0 bg-white shadow-lg dark:bg-slate-800">
+                                <CardContent className="p-8">
+                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600">
+                                        <Palette className="h-6 w-6 text-white" />
+                                    </div>
+                                    <h3 className="mb-3 text-xl font-semibold text-slate-900 dark:text-white">
+                                        Laporan & Analitik Modern
+                                    </h3>
+                                    <p className="mb-4 text-slate-600 dark:text-slate-300">
+                                        Dashboard dengan chart interaktif,
+                                        statistik real-time, dan laporan
+                                        individual untuk monitoring performa
+                                        program
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
+                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+                                            Chart Interaktif
+                                        </div>
+                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
+                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+                                            Statistik Real-time
+                                        </div>
+                                        <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
+                                            <CheckCircle className="mr-1 h-4 w-4 text-green-500" />
+                                            Export Data
                                         </div>
                                     </div>
                                 </CardContent>
@@ -418,17 +421,18 @@ export default function Home() {
                 <section className="px-6 py-24 lg:px-8">
                     <div className="mx-auto max-w-4xl text-center">
                         <h2 className="mb-6 text-4xl font-bold text-slate-900 dark:text-white">
-                            Siap Memulai Project Anda?
+                            Siap Mengelola Program JHT Anda?
                         </h2>
                         <p className="mb-10 text-xl text-slate-600 dark:text-slate-300">
-                            Dapatkan starter kit lengkap dengan semua fitur
-                            modern yang Anda butuhkan
+                            Dapatkan sistem manajemen Jaminan Hari Tua yang
+                            lengkap dengan fitur modern untuk mengelola iuran
+                            anggota dan laporan keuangan yang akurat.
                         </p>
 
                         <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
                             {!auth.user ? (
                                 <>
-                                    <Button
+                                    {/* <Button
                                         asChild
                                         size="lg"
                                         className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
@@ -436,17 +440,7 @@ export default function Home() {
                                         <Link href={register()}>
                                             Mulai Sekarang
                                         </Link>
-                                    </Button>
-                                    <Button asChild size="lg" variant="outline">
-                                        <a
-                                            href="https://github.com/sdldev/fullstack-laravel-react-starter"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            <Github className="mr-2 h-5 w-5" />
-                                            View on GitHub
-                                        </a>
-                                    </Button>
+                                    </Button> */}
                                 </>
                             ) : (
                                 <>
@@ -459,16 +453,6 @@ export default function Home() {
                                             <Settings className="mr-2 h-5 w-5" />
                                             Go to Dashboard
                                         </Link>
-                                    </Button>
-                                    <Button asChild size="lg" variant="outline">
-                                        <a
-                                            href="https://github.com/sdldev/fullstack-laravel-react-starter"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            <Github className="mr-2 h-5 w-5" />
-                                            GitHub Repository
-                                        </a>
                                     </Button>
                                 </>
                             )}
@@ -560,12 +544,12 @@ export default function Home() {
                                     <Code2 className="h-5 w-5 text-white" />
                                 </div>
                                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-xl font-bold text-transparent">
-                                    Laravel React Starter
+                                    Santrimu.com | JHT Management System
                                 </span>
                             </div>
                             <p className="text-sm text-slate-600 dark:text-slate-400">
-                                Built with ❤️ using Laravel, React, and the
-                                amazing open source community
+                                Built with ❤️ untuk program Jaminan Hari Tua
+                                menggunakan Laravel, React, dan teknologi modern
                             </p>
                         </div>
                     </div>

@@ -18,43 +18,43 @@ class RegisteredUserController extends Controller
     /**
      * Show the registration page.
      */
-    public function create(): Response
-    {
-        return Inertia::render('auth/register');
-    }
+    // public function create(): Response
+    // {
+    //     return Inertia::render('auth/register');
+    // }
 
     /**
      * Handle an incoming registration request.
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Password::defaults()],
-        ]);
+    // public function store(Request $request): RedirectResponse
+    // {
+    //     $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+    //         'password' => ['required', 'confirmed', Password::defaults()],
+    //     ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password,
-            // Auto-generate required member_number for compatibility with current schema
-            'member_number' => User::generateMemberNumber(),
-            'full_name' => $request->name,
-            'role' => 'user',
-            'address' => '',
-            'phone' => '',
-            'is_active' => true,
-        ]);
+    //     $user = User::create([
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'password' => $request->password,
+    //         // Auto-generate required member_number for compatibility with current schema
+    //         'member_number' => User::generateMemberNumber(),
+    //         'full_name' => $request->name,
+    //         'role' => 'user',
+    //         'address' => '',
+    //         'phone' => '',
+    //         'is_active' => true,
+    //     ]);
 
-        event(new Registered($user));
+    //     event(new Registered($user));
 
-        Auth::login($user);
+    //     Auth::login($user);
 
-        $request->session()->regenerate();
+    //     $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
-    }
+    //     return redirect()->intended(route('dashboard', absolute: false));
+    // }
 }
