@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Users\StoreUserRequest;
 use App\Http\Requests\Admin\Users\UpdateUserRequest;
 use App\Models\User;
-use App\Services\CacheService;
 use App\Services\ImageService;
 use Exception;
 use Illuminate\Http\Request;
@@ -16,15 +15,14 @@ use Throwable;
 
 class UserController extends Controller
 {
-    public function __construct(private readonly ImageService $imageService, private readonly CacheService $cacheService) {}
+    public function __construct(private readonly ImageService $imageService) {}
 
     public function index(Request $request)
     {
         $perPage = (int) $request->get('per_page', 10);
-        $page = (int) $request->get('page', 1);
 
-        // Cache for 5 minutes (300 seconds) to reduce database load
-        $users = $this->cacheService->rememberUsersList($page, $perPage, 300, fn () => User::select([
+        // Default Laravel pagination without cache
+        $users = User::select([
             'id',
             'name',
             'email',
@@ -34,12 +32,11 @@ class UserController extends Controller
             'phone',
             'join_date',
             'is_active',
-            'image', // Include image for avatar display
+            'image',
             'created_at',
-            // Exclude: password, address, note, updated_at, etc.
         ])
             ->latest('created_at')
-            ->paginate($perPage));
+            ->paginate($perPage);
 
         return Inertia::render('admin/users/Index', [
             'users' => $users,
@@ -74,9 +71,6 @@ class UserController extends Controller
         }
 
         User::create($data);
-
-        // Clear users list cache to show fresh data
-        $this->cacheService->clearUsersList();
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
@@ -146,9 +140,6 @@ class UserController extends Controller
 
         $user->update($data);
 
-        // Clear users list cache keys (tags or explicit keys depending on driver)
-        $this->cacheService->clearUsersList();
-
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 
@@ -167,16 +158,6 @@ class UserController extends Controller
 
         $user->delete();
 
-        // Clear users list cache keys
-        $this->cacheService->clearUsersList();
-
         return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
     }
-
-    /**
-     * Clear all users list cache keys
-     * Cache pattern: users_list_page_{page}_per_{perPage}
-     */
-    // The users cache clearing is now handled by App\Services\CacheService
-    // keeping this controller focused on request handling and persistence.
 }
