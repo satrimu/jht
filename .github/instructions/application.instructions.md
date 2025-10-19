@@ -158,9 +158,367 @@ Performance & Security reminders (Copilot must surface warnings)
 Code Style, Tests & CI (MUST follow)
 - PHP: PSR-12 / use laravel pint or php-cs-fixer.
 - TS/TSX: ESLint + Prettier; use strict typing.
+- PHPStan: Level 5 static analysis - WAJIB lolos sebelum commit.
 - Commit message convention: type(scope): short-description (feat|fix|chore|docs|refactor|test).
 - PR description must include summary, files changed, migrations (Y/N), tests (Y/N), and local run steps.
 - Add tests for important behaviors and include test command snippets in PR body.
+
+--------------------------------------------------------------------------------
+PHPStan & Type Safety Standards (CRITICAL - Level 5)
+
+**WAJIB: Semua kode PHP harus lolos PHPStan level 5 sebelum commit!**
+
+### 1. Type Declarations (MANDATORY)
+
+**Return Types:**
+```php
+// ✅ CORRECT - Explicit return type
+public function getUserReport(int $userId, int $year): array
+{
+    return ['user' => $user, 'payments' => $payments];
+}
+
+// ❌ WRONG - Missing return type
+public function getUserReport($userId, $year)
+{
+    return ['user' => $user, 'payments' => $payments];
+}
+```
+
+**Parameter Types:**
+```php
+// ✅ CORRECT - Typed parameters
+public function processPayment(Payment $payment, float $amount): bool
+{
+    // ...
+}
+
+// ❌ WRONG - Untyped parameters
+public function processPayment($payment, $amount)
+{
+    // ...
+}
+```
+
+**Nullable Types:**
+```php
+// ✅ CORRECT - Explicit nullable
+public function findUser(int $id): ?User
+{
+    return User::find($id);
+}
+
+// ❌ WRONG - No nullable indication
+public function findUser(int $id): User
+{
+    return User::find($id); // Can return null!
+}
+```
+
+### 2. Type Casting (MANDATORY)
+
+**String Casting:**
+```php
+// ✅ CORRECT - Cast to string
+$monthStr = str_pad((string) $month, 2, '0', STR_PAD_LEFT);
+
+// ❌ WRONG - No casting
+$monthStr = str_pad($month, 2, '0', STR_PAD_LEFT); // PHPStan error!
+```
+
+**Integer Casting:**
+```php
+// ✅ CORRECT - Cast request input
+$perPage = (int) $request->get('per_page', 15);
+$year = (int) $request->input('year');
+
+// ❌ WRONG - Direct use without casting
+$perPage = $request->get('per_page', 15);
+```
+
+**Array Access:**
+```php
+// ✅ CORRECT - Null coalescing with default
+$total = (int) ($stats->total_payments ?? 0);
+$amount = (float) ($stats->total_amount ?? 0);
+
+// ❌ WRONG - Direct property access
+$total = (int) $stats->total_payments; // Can be undefined!
+```
+
+### 3. Database Query Results (CRITICAL)
+
+**SelectRaw Results:**
+```php
+// ✅ CORRECT - Type annotation for query results
+$stats = Payment::selectRaw('
+    COUNT(*) as total_payments,
+    SUM(amount) as total_amount
+')->first();
+
+/** @var \stdClass $stats */
+$stats = $stats;
+
+// Now safe to access
+$total = (int) ($stats->total_payments ?? 0);
+```
+
+**Collection Mapping:**
+```php
+// ✅ CORRECT - Type hint in closure
+$payments->map(function (Payment $payment) {
+    return [
+        'id' => $payment->id,
+        'amount' => $payment->amount,
+    ];
+})
+
+// ❌ WRONG - No type hint
+$payments->map(function ($payment) { // PHPStan can't infer type
+    return ['id' => $payment->id];
+})
+```
+
+**Eloquent Relationships:**
+```php
+// ✅ CORRECT - Type assertion for related models
+$payments->map(function (Payment $payment) {
+    /** @var User $user */
+    $user = $payment->user;
+    return [
+        'user_name' => $user->full_name,
+        'user_email' => $user->email,
+    ];
+})
+
+// ❌ WRONG - Direct access without assertion
+$payments->map(function (Payment $payment) {
+    return [
+        'user_name' => $payment->user->full_name, // Property not found error!
+    ];
+})
+```
+
+### 4. Array Type Hints
+
+**Method Return Arrays:**
+```php
+// ✅ CORRECT - PHPDoc for complex arrays
+/**
+ * @return array{
+ *     total_members: int,
+ *     total_payments: int,
+ *     total_amount: float,
+ *     monthly_breakdown: array<int, array{month: int, amount: float}>
+ * }
+ */
+public function getGeneralStats(int $year, ?int $month = null): array
+{
+    return [
+        'total_members' => 100,
+        'total_payments' => 500,
+        'total_amount' => 50000.00,
+        'monthly_breakdown' => []
+    ];
+}
+```
+
+**Collection Type Hints:**
+```php
+// ✅ CORRECT - Generic type annotation
+/** @var Collection<int, Payment> $payments */
+$payments = Payment::where('status', 'validated')->get();
+```
+
+### 5. Common PHPStan Error Patterns & Fixes
+
+**Pattern 1: String function expects string, int given**
+- Error: `Parameter expects string, int given` 
+- Cause: Integer passed to string function
+- Fix: Cast to string → `str_pad((string) $value, ...)`
+
+**Pattern 2: Access to undefined property stdClass**
+- Error: `Access to undefined property stdClass::$property`
+- Cause: Raw query result access without type annotation
+- Fix: Add `/** @var \stdClass $var */` and use null coalescing `?? 0`
+
+**Pattern 3: Access to undefined property Model**
+- Error: `Access to undefined property Model::$property`
+- Cause: Dynamic property access on related model
+- Fix: Type assertion → `/** @var User $user */` then access property
+
+**Pattern 4: Type|null given where Type expected**
+- Error: `Parameter expects Type, Type|null given`
+- Cause: Nullable not handled properly
+- Fix: Use null coalescing → `$value ?? default`
+
+**Pattern 5: Call method on Model|null**
+- Error: `Cannot call method on Model|null`
+- Cause: Relationship can be null
+- Fix: Null-safe operator → `$model->relation?->property`
+
+**Pattern 6: Property not found on Collection**
+- Error: `Property not found on Collection`
+- Cause: Wrong type inference on collection
+- Fix: Add generic type → `@var Collection<int, Model>`
+
+### 6. Repository Pattern Type Safety
+
+```php
+// ✅ CORRECT - Repository with proper types
+interface ReportRepositoryInterface
+{
+    /**
+     * @return array{
+     *     total_members: int,
+     *     active_members: int,
+     *     monthly_breakdown: array<int, array{month: int, amount: float}>
+     * }
+     */
+    public function getGeneralStats(int $year, ?int $month = null): array;
+    
+    public function getUserReport(int $userId, int $year): array;
+}
+
+class ReportRepository implements ReportRepositoryInterface
+{
+    public function getGeneralStats(int $year, ?int $month = null): array
+    {
+        $query = Payment::whereYear('payment_date', $year);
+        
+        if ($month !== null) {
+            $query->whereMonth('payment_date', $month);
+        }
+        
+        $stats = $query->selectRaw('...')->first();
+        
+        /** @var \stdClass $stats */
+        $stats = $stats;
+        
+        return [
+            'total_members' => (int) ($stats->total_members ?? 0),
+            'active_members' => (int) ($stats->active_members ?? 0),
+            'monthly_breakdown' => []
+        ];
+    }
+}
+```
+
+### 7. Controller Type Safety
+
+```php
+// ✅ CORRECT - Controller with dependency injection
+class ReportController extends Controller
+{
+    public function __construct(
+        private readonly ReportRepositoryInterface $repo
+    ) {}
+    
+    public function index(Request $request): Response
+    {
+        $year = (int) $request->input('year', now()->year);
+        $month = $request->has('month') ? (int) $request->input('month') : null;
+        
+        $stats = $this->repo->getGeneralStats($year, $month);
+        
+        return Inertia::render('admin/reports/Index', [
+            'generalStats' => $stats,
+            'selectedYear' => $year,
+            'selectedMonth' => $month,
+        ]);
+    }
+}
+```
+
+### 8. Before Commit Checklist (MANDATORY)
+
+**Always run these commands before committing:**
+
+```bash
+# 1. Format PHP code
+./vendor/bin/pint
+
+# 2. Type check with PHPStan (MUST PASS!)
+./vendor/bin/phpstan analyze --memory-limit=2G
+
+# 3. Format TypeScript/React
+npx eslint . --fix
+
+# 4. Run tests
+./vendor/bin/pest --no-coverage
+```
+
+**Expected PHPStan Output:**
+```
+[OK] No errors
+```
+
+**If PHPStan shows errors:**
+1. ✅ Read error message carefully
+2. ✅ Fix type declarations first
+3. ✅ Add proper type casts
+4. ✅ Add PHPDoc annotations where needed
+5. ✅ Re-run PHPStan until clean
+6. ✅ DO NOT commit with PHPStan errors
+
+### 9. PHPStan Error Examples from This Project
+
+**Example 1: str_pad type error**
+```php
+// ❌ ERROR
+$monthStr = str_pad($month, 2, '0', STR_PAD_LEFT);
+
+// ✅ FIX
+$monthStr = str_pad((string) $month, 2, '0', STR_PAD_LEFT);
+```
+
+**Example 2: Undefined property on query result**
+```php
+// ❌ ERROR
+$stats = Payment::selectRaw('COUNT(*) as total')->first();
+$total = $stats->total;
+
+// ✅ FIX
+$stats = Payment::selectRaw('COUNT(*) as total')->first();
+/** @var \stdClass $stats */
+$stats = $stats;
+$total = (int) ($stats->total ?? 0);
+```
+
+**Example 3: Collection mapping without type**
+```php
+// ❌ ERROR
+$data = $payments->map(function ($payment) {
+    return ['id' => $payment->id];
+});
+
+// ✅ FIX
+$data = $payments->map(function (Payment $payment) {
+    return ['id' => $payment->id];
+});
+```
+
+### 10. Quick Reference Card
+
+**Type Casting Quick Reference:**
+- String: `(string) $value`
+- Integer: `(int) $value`
+- Float: `(float) $value`
+- Boolean: `(bool) $value`
+- Null coalescing: `$value ?? default`
+
+**Type Annotation Quick Reference:**
+- stdClass: `/** @var \stdClass $var */`
+- Model: `/** @var User $user */`
+- Collection: `/** @var Collection<int, Payment> $payments */`
+- Array: `/** @var array<string, mixed> $data */`
+
+**Common Fixes:**
+- `str_pad()`: Cast to string
+- `selectRaw()`: Add `@var \stdClass` annotation
+- Collection map: Add type hint in closure
+- Relationships: Add type assertion for related model
+- Dynamic properties: Use null coalescing `??`
 
 --------------------------------------------------------------------------------
 Templates Copilot should follow (short examples)
