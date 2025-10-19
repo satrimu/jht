@@ -142,6 +142,7 @@ Welcome to the comprehensive documentation for the Fullstack Laravel React Start
 - [Development Scripts](../README.md#development-scripts)
 
 **Code Quality**:
+- [PHPStan Quick Reference](development/PHPSTAN_QUICK_REFERENCE.md) - ⭐ Complete guide to avoid PHPStan errors
 - [PHPStan (Level 5)](architecture/OVERVIEW.md#phpstan-level-5)
 - [ESLint Rules](architecture/OVERVIEW.md#eslint-rules)
 - [Laravel Pint](architecture/OVERVIEW.md#laravel-pint-psr-12)

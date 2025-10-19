@@ -39,7 +39,12 @@ class PaymentSeeder extends Seeder
             $currentMonth->addMonth();
         }
 
+        // Track payment history untuk logika double payment
+        $userPaymentHistory = [];
+
         foreach ($users as $user) {
+            $userPaymentHistory[$user->id] = [];
+
             foreach ($months as $month) {
                 // Tentukan tanggal pembayaran random dalam bulan tersebut
                 $paymentDate = $month->copy()->addDays(random_int(1, min(28, $month->daysInMonth)));
@@ -49,33 +54,54 @@ class PaymentSeeder extends Seeder
                     continue;
                 }
 
-                // Tentukan amount (iuran bulanan)
-                $baseAmount = 100000; // IDR 100,000 base
-                $variation = random_int(-10000, 20000); // Variasi ±10k to +20k
-                $amount = $baseAmount + $variation;
+                // Check apakah user membayar bulan sebelumnya
+                $previousMonth = $month->copy()->subMonth();
+                $paidPreviousMonth = in_array($previousMonth->format('Y-m'), $userPaymentHistory[$user->id]);
 
-                // Tentukan status pembayaran
-                $status = $this->determinePaymentStatus($paymentDate);
+                // Logika pembayaran
+                $shouldPay = random_int(1, 100) <= 85; // 85% kemungkinan membayar
 
-                // Tentukan apakah ada bukti pembayaran (image)
-                $hasImage = random_int(1, 100) <= 85; // 85% kemungkinan ada image
-                $image = $hasImage ? $this->generateImageFilename($user->id, $paymentDate) : null;
+                if ($shouldPay) {
+                    // Jika bulan lalu belum bayar, maka bulan ini double (50000)
+                    // Jika bulan lalu sudah bayar atau bulan pertama, maka normal (25000)
+                    $amount = ! $paidPreviousMonth ? 50000 : 25000;
 
-                // Buat notes untuk beberapa pembayaran
-                $notes = $this->generateNotes($status, $paymentDate);
+                    // Logika status:
+                    // - Bulan berjalan: pending 40%, terbayar 60%
+                    // - Bulan sebelumnya: SELALU terbayar
+                    $isCurrentMonth = $month->format('Y-m') === Carbon::now()->format('Y-m');
+                    if ($isCurrentMonth) {
+                        // Bulan ini: 60% terbayar, 40% pending
+                        $rand = random_int(1, 100);
+                        $status = $rand <= 60 ? 'terbayar' : 'pending';
+                    } else {
+                        // Bulan sebelumnya: SELALU terbayar
+                        $status = 'terbayar';
+                    }
 
-                Payment::create([
-                    'user_id' => $user->id,
-                    'amount' => $amount,
-                    'payment_date' => $paymentDate->format('Y-m-d'),
-                    'status' => $status,
-                    'notes' => $notes,
-                    'image' => $image,
-                    'created_at' => $paymentDate->copy()->addHours(random_int(1, 6)),
-                    'updated_at' => $paymentDate->copy()->addHours(random_int(1, 6)),
-                ]);
+                    // Tentukan apakah ada bukti pembayaran (image)
+                    $hasImage = random_int(1, 100) <= 85; // 85% kemungkinan ada image
+                    $image = $hasImage ? $this->generateImageFilename($user->id, $paymentDate) : null;
 
-                $totalPayments++;
+                    // Buat notes untuk beberapa pembayaran
+                    $notes = $this->generateNotes($status, $paymentDate, $amount);
+
+                    Payment::create([
+                        'user_id' => $user->id,
+                        'amount' => $amount,
+                        'payment_date' => $paymentDate->format('Y-m-d'),
+                        'status' => $status,
+                        'notes' => $notes,
+                        'image' => $image,
+                        'created_at' => $paymentDate->copy()->addHours(random_int(1, 6)),
+                        'updated_at' => $paymentDate->copy()->addHours(random_int(1, 6)),
+                    ]);
+
+                    // Track bahwa user sudah bayar di bulan ini
+                    $userPaymentHistory[$user->id][] = $month->format('Y-m');
+
+                    $totalPayments++;
+                }
             }
 
             // Progress indicator
@@ -88,52 +114,6 @@ class PaymentSeeder extends Seeder
 
         // Summary statistics
         $this->displaySummary();
-    }
-
-    /**
-     * Tentukan status pembayaran berdasarkan tanggal
-     */
-    private function determinePaymentStatus(Carbon $paymentDate): string
-    {
-        $now = Carbon::now();
-        $daysSincePayment = $paymentDate->diffInDays($now);
-        // Pembayaran lama lebih likely sudah divalidasi
-        if ($daysSincePayment > 60) {
-            // 90% validated, 8% rejected, 2% pending
-            $rand = random_int(1, 100);
-            if ($rand <= 90) {
-                return 'validated';
-            }
-            if ($rand <= 98) {
-                return 'rejected';
-            }
-
-            return 'pending';
-        }
-
-        // Pembayaran lama lebih likely sudah divalidasi
-        if ($daysSincePayment > 30) {
-            // 80% validated, 15% rejected, 5% pending
-            $rand = random_int(1, 100);
-            if ($rand <= 80) {
-                return 'validated';
-            }
-            if ($rand <= 95) {
-                return 'rejected';
-            }
-
-            return 'pending';
-        }
-        // Pembayaran baru: 60% validated, 10% rejected, 30% pending
-        $rand = random_int(1, 100);
-        if ($rand <= 60) {
-            return 'validated';
-        }
-        if ($rand <= 70) {
-            return 'rejected';
-        }
-
-        return 'pending';
     }
 
     /**
@@ -151,34 +131,29 @@ class PaymentSeeder extends Seeder
     /**
      * Generate notes untuk pembayaran
      */
-    private function generateNotes(?string $status, Carbon $paymentDate): ?string
+    private function generateNotes(?string $status, Carbon $paymentDate, int $amount): ?string
     {
         // 40% kemungkinan ada notes
         if (random_int(1, 100) > 40) {
             return null;
         }
 
+        $isDouble = $amount === 50000;
+
         $notes = [
-            'validated' => [
-                'Pembayaran iuran bulan '.$paymentDate->format('F Y'),
-                'Transfer bank confirmed',
-                'Iuran bulanan - terverifikasi',
-                'Pembayaran tepat waktu',
-                'Setoran rutin bulanan',
-            ],
-            'rejected' => [
-                'Bukti transfer tidak jelas',
-                'Nominal tidak sesuai',
-                'Perlu upload ulang bukti pembayaran',
-                'Data transfer tidak lengkap',
-                'Foto bukti transfer blur',
+            'terbayar' => [
+                'Pembayaran iuran bulan '.$paymentDate->format('F Y').($isDouble ? ' + cicilan bulan sebelumnya' : ''),
+                'Transfer bank confirmed'.($isDouble ? ' - pembayaran double' : ''),
+                'Iuran bulanan - terverifikasi'.($isDouble ? ' + tunggakan' : ''),
+                'Pembayaran tepat waktu'.($isDouble ? ' (include cicilan)' : ''),
+                'Setoran rutin bulanan'.($isDouble ? ' + pembayaran tunggakan' : ''),
             ],
             'pending' => [
-                'Menunggu verifikasi admin',
-                'Sedang dalam proses review',
-                'Upload bukti transfer baru',
-                'Pembayaran dalam antrian verifikasi',
-                'Menunggu konfirmasi',
+                'Menunggu verifikasi admin'.($isDouble ? ' - pembayaran double' : ''),
+                'Sedang dalam proses review'.($isDouble ? ' (termasuk cicilan)' : ''),
+                'Upload bukti transfer baru'.($isDouble ? ' + cicilan bulan lalu' : ''),
+                'Pembayaran dalam antrian verifikasi'.($isDouble ? ' - double payment' : ''),
+                'Menunggu konfirmasi'.($isDouble ? ' (tunggakan + bulan ini)' : ''),
             ],
         ];
 
@@ -193,20 +168,28 @@ class PaymentSeeder extends Seeder
     private function displaySummary(): void
     {
         $total = Payment::count();
-        $validated = Payment::where('status', 'validated')->count();
+        $terbayar = Payment::where('status', 'terbayar')->count();
         $pending = Payment::where('status', 'pending')->count();
-        $rejected = Payment::where('status', 'rejected')->count();
 
-        $totalAmount = Payment::where('status', 'validated')->sum('amount');
+        $totalAmount = Payment::sum('amount');
+        $terbayarAmount = Payment::where('status', 'terbayar')->sum('amount');
         $avgAmount = Payment::avg('amount');
+
+        // Breakdown by amount
+        $standardPayments = Payment::where('amount', 25000)->count();
+        $doublePayments = Payment::where('amount', 50000)->count();
 
         $this->command->info("\n📊 Payment Summary:");
         $this->command->info("Total Payments: {$total}");
-        $this->command->info("✅ Validated: {$validated}");
+        $this->command->info("✅ Terbayar: {$terbayar}");
         $this->command->info("⏳ Pending: {$pending}");
-        $this->command->info("❌ Rejected: {$rejected}");
-        $this->command->info('💰 Total Validated Amount: '.number_format($totalAmount, 0, ',', '.'));
+        $this->command->info('💰 Total Amount: '.number_format($totalAmount, 0, ',', '.'));
+        $this->command->info('💳 Terbayar Amount: '.number_format($terbayarAmount, 0, ',', '.'));
         $this->command->info('📈 Average Amount: '.number_format($avgAmount, 0, ',', '.'));
+
+        $this->command->info("\n💵 Payment Breakdown:");
+        $this->command->info("  Standard (25.000): {$standardPayments} payments");
+        $this->command->info("  Double (50.000): {$doublePayments} payments (bulan lalu belum bayar)");
 
         // Monthly breakdown
         $this->command->info("\n📅 Monthly Breakdown:");

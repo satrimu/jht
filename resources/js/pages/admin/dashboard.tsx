@@ -16,7 +16,6 @@ import {
     DollarSign,
     TrendingUp,
     Users,
-    XCircle,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
@@ -36,12 +35,11 @@ interface GeneralReport {
         uniqueMembers: number;
     };
     globalContribution: {
-        totalValidatedCount: number;
-        totalValidatedAmount: number;
+        totalTerbayarCount: number;
+        totalTerbayarAmount: number;
         statusBreakdown: {
-            validated: { count: number; amount: number };
+            terbayar: { count: number; amount: number };
             pending: { count: number; amount: number };
-            rejected: { count: number; amount: number };
         };
         topContributors: Array<{
             user_id: number;
@@ -86,8 +84,6 @@ interface GeneralReport {
         thisWeekAmount: number;
         pendingPayments: number;
         pendingAmount: number;
-        rejectedPayments: number;
-        rejectedAmount: number;
     };
     recentPayments: Array<{
         id: number;
@@ -161,9 +157,9 @@ export default function AdminDashboard({
         },
         {
             title: 'Total Global',
-            value: formatCurrency(globalContribution.totalValidatedAmount),
+            value: formatCurrency(globalContribution.totalTerbayarAmount),
             icon: BarChart3,
-            change: `${formatNumber(globalContribution.totalValidatedCount)} transaksi`,
+            change: `${formatNumber(globalContribution.totalTerbayarCount)} transaksi`,
             changeType: 'positive',
         },
     ];
@@ -411,12 +407,9 @@ export default function AdminDashboard({
                                             <div
                                                 className={`h-2 w-2 rounded-full ${
                                                     payment.status ===
-                                                    'validated'
+                                                    'terbayar'
                                                         ? 'bg-green-500'
-                                                        : payment.status ===
-                                                            'pending'
-                                                          ? 'bg-yellow-500'
-                                                          : 'bg-red-500'
+                                                        : 'bg-yellow-500'
                                                 }`}
                                             ></div>
                                             <div>
@@ -440,20 +433,14 @@ export default function AdminDashboard({
                                             <div
                                                 className={`text-xs capitalize ${
                                                     payment.status ===
-                                                    'validated'
+                                                    'terbayar'
                                                         ? 'text-green-600'
-                                                        : payment.status ===
-                                                            'pending'
-                                                          ? 'text-yellow-600'
-                                                          : 'text-red-600'
+                                                        : 'text-yellow-600'
                                                 }`}
                                             >
-                                                {payment.status === 'validated'
-                                                    ? 'Tervalidasi'
-                                                    : payment.status ===
-                                                        'pending'
-                                                      ? 'Menunggu'
-                                                      : 'Ditolak'}
+                                                {payment.status === 'terbayar'
+                                                    ? 'Terbayar'
+                                                    : 'Menunggu'}
                                             </div>
                                         </div>
                                     </div>
@@ -590,28 +577,6 @@ export default function AdminDashboard({
                                         </div>
                                     </div>
                                 </div>
-                                {summaryStats.rejectedPayments > 0 && (
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                            <XCircle className="h-4 w-4 text-red-600" />
-                                            <span className="text-sm font-medium">
-                                                Ditolak
-                                            </span>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-sm font-bold text-red-600">
-                                                {formatNumber(
-                                                    summaryStats.rejectedPayments,
-                                                )}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">
-                                                {formatCurrency(
-                                                    summaryStats.rejectedAmount,
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -674,21 +639,21 @@ export default function AdminDashboard({
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="rounded-lg bg-green-50 p-4 text-center">
                                 <div className="text-2xl font-bold text-green-600">
                                     {formatNumber(
                                         globalContribution.statusBreakdown
-                                            .validated.count,
+                                            .terbayar.count,
                                     )}
                                 </div>
                                 <div className="text-sm font-medium text-green-600">
-                                    Tervalidasi
+                                    Terbayar
                                 </div>
                                 <div className="text-xs text-muted-foreground">
                                     {formatCurrency(
                                         globalContribution.statusBreakdown
-                                            .validated.amount,
+                                            .terbayar.amount,
                                     )}
                                 </div>
                             </div>
@@ -706,23 +671,6 @@ export default function AdminDashboard({
                                     {formatCurrency(
                                         globalContribution.statusBreakdown
                                             .pending.amount,
-                                    )}
-                                </div>
-                            </div>
-                            <div className="rounded-lg bg-red-50 p-4 text-center">
-                                <div className="text-2xl font-bold text-red-600">
-                                    {formatNumber(
-                                        globalContribution.statusBreakdown
-                                            .rejected.count,
-                                    )}
-                                </div>
-                                <div className="text-sm font-medium text-red-600">
-                                    Ditolak
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                    {formatCurrency(
-                                        globalContribution.statusBreakdown
-                                            .rejected.amount,
                                     )}
                                 </div>
                             </div>

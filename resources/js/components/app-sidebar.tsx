@@ -13,6 +13,7 @@ import { Link } from '@inertiajs/react';
 import {
     Cog,
     Dot,
+    FileText,
     HandCoins,
     LayoutGrid,
     Shield,
@@ -31,6 +32,11 @@ const mainNavItems: MainNavItem[] = [
         title: 'Iuran',
         href: '/admin/payments',
         icon: HandCoins,
+    },
+    {
+        title: 'Laporan',
+        href: '/admin/reports',
+        icon: FileText,
     },
     // {
     //     title: 'Kategori',

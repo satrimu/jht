@@ -18,27 +18,7 @@ import CreatePaymentModal from './CreatePaymentModal';
 import DeletePaymentModal from './DeletePaymentModal';
 import EditPaymentModal from './EditPaymentModal';
 import ShowPaymentModal from './ShowPaymentModal';
-
-interface User {
-    id: number;
-    name: string;
-    full_name: string;
-    member_number: string;
-}
-
-interface Payment {
-    id: number;
-    user_id: number;
-    amount: string;
-    payment_date: string;
-    status: 'pending' | 'validated' | 'rejected';
-    notes: string | null;
-    image: string | null;
-    image_url: string;
-    created_at: string;
-    updated_at: string;
-    user: User;
-}
+import { Payment, User } from '@/pages/shared/types';
 
 interface PaymentsIndexProps {
     payments: {
@@ -88,14 +68,12 @@ export default function Index({
     const getStatusBadge = (status: string) => {
         const variants = {
             pending: 'outline',
-            validated: 'default',
-            rejected: 'destructive',
+            terbayar: 'default',
         } as const;
 
         const labels = {
             pending: 'Pending',
-            validated: 'Validated',
-            rejected: 'Rejected',
+            terbayar: 'Terbayar',
         };
 
         return (

@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingAppController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,12 @@ Route::middleware(['auth', 'verified', 'can:admin'])->group(function (): void {
 
     // Payment management routes
     Route::resource('admin/payments', PaymentController::class)->except(['create', 'edit'])->names('admin.payments');
+
+    // Report routes
+    Route::get('/admin/reports', [ReportController::class, 'index'])->name('admin.reports.index');
+    Route::get('/admin/reports/{user}', [ReportController::class, 'show'])->name('admin.reports.show');
+    Route::get('/admin/reports/{user}/export-pdf', [ReportController::class, 'exportUserPdf'])->name('admin.reports.export-pdf');
+    Route::get('/admin/reports/export-general', [ReportController::class, 'exportGeneral'])->name('admin.reports.export-general');
 
     // Application Settings
     Route::get('/admin/settingsapp', [SettingAppController::class, 'edit'])->name('setting.edit');

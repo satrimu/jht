@@ -80,10 +80,8 @@ export default function DeletePaymentModal({
         switch (status) {
             case 'pending':
                 return 'Pending';
-            case 'validated':
-                return 'Validated';
-            case 'rejected':
-                return 'Rejected';
+            case 'terbayar':
+                return 'Terbayar';
             default:
                 return status;
         }

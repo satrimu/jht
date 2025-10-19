@@ -77,7 +77,7 @@ class DashboardController extends Controller
             ->whereHas('payments', function ($query): void {
                 $query->whereMonth('payment_date', Carbon::now()->month)
                     ->whereYear('payment_date', Carbon::now()->year)
-                    ->where('status', 'validated');
+                    ->where('status', 'terbayar');
             })
             ->count();
 
@@ -98,7 +98,7 @@ class DashboardController extends Controller
     private function getMonthlyContribution(string $currentMonth): array
     {
         $monthlyPayments = Payment::whereRaw('strftime("%Y-%m", payment_date) = ?', [$currentMonth])
-            ->where('status', 'validated')
+            ->where('status', 'terbayar')
             ->get();
 
         $totalAmount = $monthlyPayments->sum('amount');
@@ -107,7 +107,7 @@ class DashboardController extends Controller
 
         // Breakdown by week
         Payment::whereRaw('strftime("%Y-%m", payment_date) = ?', [$currentMonth])
-            ->where('status', 'validated')
+            ->where('status', 'terbayar')
             ->selectRaw('
                 CASE 
                     WHEN strftime("%d", payment_date) BETWEEN "01" AND "07" THEN "Week 1"
@@ -123,7 +123,7 @@ class DashboardController extends Controller
 
         // Count unique members who paid this month
         $uniqueMembers = Payment::whereRaw('strftime("%Y-%m", payment_date) = ?', [$currentMonth])
-            ->where('status', 'validated')
+            ->where('status', 'terbayar')
             ->distinct('user_id')
             ->count('user_id');
 
@@ -141,19 +141,19 @@ class DashboardController extends Controller
      */
     private function getGlobalContribution(): array
     {
-        // Total validated payments
-        $validatedPayments = Payment::where('status', 'validated')->get();
-        $totalValidatedAmount = $validatedPayments->sum('amount');
-        $totalValidatedCount = $validatedPayments->count();
+        // Total terbayar payments
+        $terbayarPayments = Payment::where('status', 'terbayar')->get();
+        $totalTerbayarAmount = $terbayarPayments->sum('amount');
+        $totalTerbayarCount = $terbayarPayments->count();
 
-        // All payments (including pending and rejected)
+        // All payments (including pending)
         $allPayments = Payment::all();
         $allPayments->sum('amount');
         $allPayments->count();
 
         // Payment status breakdown
         $statusBreakdown = collect();
-        $statuses = ['validated', 'pending', 'rejected'];
+        $statuses = ['terbayar', 'pending'];
 
         foreach ($statuses as $status) {
             $statusBreakdown->put($status, [
@@ -165,10 +165,10 @@ class DashboardController extends Controller
         // Top contributing members
         $topContributors = User::where('id', '!=', 1)
             ->withSum(['payments as total_contribution' => function ($query): void {
-                $query->where('status', 'validated');
+                $query->where('status', 'terbayar');
             }], 'amount')
             ->withCount(['payments as total_payments' => function ($query): void {
-                $query->where('status', 'validated');
+                $query->where('status', 'terbayar');
             }])
             ->orderByDesc('total_contribution')
             ->limit(10)
@@ -182,8 +182,8 @@ class DashboardController extends Controller
             ]);
 
         return [
-            'totalValidatedAmount' => $totalValidatedAmount,
-            'totalValidatedCount' => $totalValidatedCount,
+            'totalTerbayarAmount' => $totalTerbayarAmount,
+            'totalTerbayarCount' => $totalTerbayarCount,
             'statusBreakdown' => $statusBreakdown->toArray(),
             'topContributors' => $topContributors->toArray(),
         ];
@@ -201,7 +201,7 @@ class DashboardController extends Controller
             $monthKey = $current->format('Y-m');
 
             $monthlyData = Payment::whereRaw('strftime("%Y-%m", payment_date) = ?', [$monthKey])
-                ->where('status', 'validated')
+                ->where('status', 'terbayar')
                 ->selectRaw('COUNT(*) as count, SUM(amount) as total')
                 ->first();
 
@@ -240,17 +240,14 @@ class DashboardController extends Controller
         Carbon::now()->startOfMonth();
 
         return [
-            'todayPayments' => Payment::whereDate('payment_date', $today)->where('status', 'validated')->count(),
-            'todayAmount' => Payment::whereDate('payment_date', $today)->where('status', 'validated')->sum('amount'),
+            'todayPayments' => Payment::whereDate('payment_date', $today)->where('status', 'terbayar')->count(),
+            'todayAmount' => Payment::whereDate('payment_date', $today)->where('status', 'terbayar')->sum('amount'),
 
-            'thisWeekPayments' => Payment::where('payment_date', '>=', $thisWeek)->where('status', 'validated')->count(),
-            'thisWeekAmount' => Payment::where('payment_date', '>=', $thisWeek)->where('status', 'validated')->sum('amount'),
+            'thisWeekPayments' => Payment::where('payment_date', '>=', $thisWeek)->where('status', 'terbayar')->count(),
+            'thisWeekAmount' => Payment::where('payment_date', '>=', $thisWeek)->where('status', 'terbayar')->sum('amount'),
 
             'pendingPayments' => Payment::where('status', 'pending')->count(),
             'pendingAmount' => Payment::where('status', 'pending')->sum('amount'),
-
-            'rejectedPayments' => Payment::where('status', 'rejected')->count(),
-            'rejectedAmount' => Payment::where('status', 'rejected')->sum('amount'),
         ];
     }
 
@@ -269,7 +266,7 @@ class DashboardController extends Controller
             $monthName = Carbon::createFromDate($currentYear, $month, 1)->format('M');
 
             $monthlyData = Payment::whereRaw('strftime("%Y-%m", payment_date) = ?', [$monthKey])
-                ->where('status', 'validated')
+                ->where('status', 'terbayar')
                 ->selectRaw('COUNT(*) as count, SUM(amount) as total')
                 ->first();
 

@@ -10,29 +10,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Payment } from '@/pages/shared/types';
 import { ExternalLink } from 'lucide-react';
-
-interface User {
-    id: number;
-    name: string;
-    full_name: string;
-    member_number: string;
-    email: string;
-}
-
-interface Payment {
-    id: number;
-    user_id: number;
-    amount: string;
-    payment_date: string;
-    status: string;
-    notes: string | null;
-    image: string | null;
-    image_url: string;
-    created_at: string;
-    updated_at: string;
-    user: User;
-}
 
 interface ShowPaymentModalProps {
     isOpen: boolean;
@@ -77,10 +56,8 @@ export default function ShowPaymentModal({
         switch (status) {
             case 'pending':
                 return <Badge variant="secondary">Pending</Badge>;
-            case 'validated':
-                return <Badge variant="default">Validated</Badge>;
-            case 'rejected':
-                return <Badge variant="destructive">Rejected</Badge>;
+            case 'terbayar':
+                return <Badge variant="default">Terbayar</Badge>;
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }

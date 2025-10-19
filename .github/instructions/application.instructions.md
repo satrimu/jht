@@ -39,8 +39,8 @@ Bahasa: Bahasa Indonesia (penjelasan). Kode tetap dalam bahasa Inggris.
 
 **Workflow Pembayaran**:
 - Anggota submit payment + bukti → Status: "pending"
-- Admin review → Approve (status: "validated") atau Reject (status: "rejected")
-- Admin input manual → Langsung status: "validated"
+- Admin approve/validasi → Status: "terbayar"
+- Admin input manual → Langsung status: "terbayar"
 
 **Role & Permission**:
 - **Member**: Akses site area, manage profile, submit payments, view personal reports
@@ -327,7 +327,9 @@ public function getGeneralStats(int $year, ?int $month = null): array
 ```php
 // ✅ CORRECT - Generic type annotation
 /** @var Collection<int, Payment> $payments */
-$payments = Payment::where('status', 'validated')->get();
+   ```php
+   $payments = Payment::where('status', 'terbayar')->get();
+   ```
 ```
 
 ### 5. Common PHPStan Error Patterns & Fixes

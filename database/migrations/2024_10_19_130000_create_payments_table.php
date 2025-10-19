@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->decimal('amount', 15, 2);
             $table->timestamp('payment_date');
-            $table->enum('status', ['pending', 'validated', 'rejected'])->default('pending');
+            $table->enum('status', ['pending', 'terbayar'])->default('pending');
             $table->text('notes')->nullable();
             $table->string('image')->nullable(); // stores filename only
             $table->timestamps();

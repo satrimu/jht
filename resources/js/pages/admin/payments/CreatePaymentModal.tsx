@@ -235,11 +235,8 @@ export default function CreatePaymentModal({
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="validated">
-                                    Validated
-                                </SelectItem>
-                                <SelectItem value="rejected">
-                                    Rejected
+                                <SelectItem value="terbayar">
+                                    Terbayar
                                 </SelectItem>
                             </SelectContent>
                         </Select>

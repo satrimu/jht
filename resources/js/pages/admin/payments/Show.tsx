@@ -79,10 +79,8 @@ export default function Show({ payment, breadcrumbs }: PaymentShowProps) {
         switch (status) {
             case 'pending':
                 return <Badge variant="secondary">Pending</Badge>;
-            case 'validated':
-                return <Badge variant="default">Validated</Badge>;
-            case 'rejected':
-                return <Badge variant="destructive">Rejected</Badge>;
+            case 'terbayar':
+                return <Badge variant="default">Terbayar</Badge>;
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }

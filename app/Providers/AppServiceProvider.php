@@ -11,8 +11,10 @@ use App\Policies\CategoryPolicy;
 use App\Policies\PaymentPolicy;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use App\Repositories\Contracts\PaymentRepositoryInterface;
+use App\Repositories\Contracts\ReportRepositoryInterface;
 use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\PaymentRepository;
+use App\Repositories\Eloquent\ReportRepository;
 use App\Services\ImageService;
 use App\Services\SecurityLogService;
 use Illuminate\Support\Facades\Gate;
@@ -43,6 +45,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             PaymentRepositoryInterface::class,
             PaymentRepository::class
+        );
+
+        // Bind ReportRepository interface
+        $this->app->bind(
+            ReportRepositoryInterface::class,
+            ReportRepository::class
         );
     }
 
