@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import {
   Pagination,
   PaginationContent,
