@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Head } from '@inertiajs/react';
+import { Input } from '@/components/ui/input';
 import {
   Pagination,
   PaginationContent,
@@ -19,7 +20,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
+import { Edit, Eye, Plus, Trash2, Search } from 'lucide-react';
 import React, { useState } from 'react';
 import CreateUserModal from './CreateUserModal';
 import DeleteUserModal from './DeleteUserModal';
@@ -54,6 +55,7 @@ interface UsersIndexProps {
         total: number;
         prev_page_url: string | null;
         next_page_url: string | null;
+        links: Array<{ url: string | null; label: string; active: boolean }>;
     };
     breadcrumbs: Array<{
         title: string;
@@ -67,6 +69,20 @@ export default function Index({ users, breadcrumbs }: UsersIndexProps) {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    
+    // Client-side live search
+    const [search, setSearch] = useState('');
+
+    // Filter users based on search
+    const filteredUsers = users.data.filter((user) => {
+        const searchLower = search.toLowerCase();
+        return (
+            user.name.toLowerCase().includes(searchLower) ||
+            user.email.toLowerCase().includes(searchLower) ||
+            (user.member_number?.toLowerCase().includes(searchLower) ?? false) ||
+            (user.phone?.toLowerCase().includes(searchLower) ?? false)
+        );
+    });
 
     const handleShowUser = (user: User) => {
         setSelectedUser(user);
@@ -87,17 +103,25 @@ export default function Index({ users, breadcrumbs }: UsersIndexProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users Management" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="flex items-center justify-between">
+                {/* Search and Filter Controls */}
+                <div className="flex flex-row items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">
-                            Users Management
-                        </h1>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder="Search by Name, Email, Member #, or Phone..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full pl-10 md:w-72"
+                            />
+                        </div>
                     </div>
                     <Button onClick={() => setIsCreateModalOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" />
                         Add User
                     </Button>
                 </div>
+
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -111,7 +135,8 @@ export default function Index({ users, breadcrumbs }: UsersIndexProps) {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {users.data.map((user) => (
+                        {filteredUsers.length > 0 ? (
+                            filteredUsers.map((user) => (
                             <TableRow key={user.id}>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
@@ -191,7 +216,16 @@ export default function Index({ users, breadcrumbs }: UsersIndexProps) {
                                     </div>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={7} className="py-8 text-center">
+                                    <p className="text-muted-foreground">
+                                        {search ? 'No users found matching your search.' : 'No users found.'}
+                                    </p>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
 
@@ -200,99 +234,91 @@ export default function Index({ users, breadcrumbs }: UsersIndexProps) {
                     <div className="mt-8 flex justify-center">
                         <Pagination>
                             <PaginationContent>
-                                {/* Previous Button */}
-                                <PaginationItem>
-                                    <PaginationPrevious
-                                        href={
-                                            users.prev_page_url
-                                                ? users.prev_page_url
-                                                : '#'
-                                        }
-                                        onClick={(e) => {
-                                            if (!users.prev_page_url) {
-                                                e.preventDefault();
-                                            }
-                                        }}
-                                        className={
-                                            !users.prev_page_url
-                                                ? 'pointer-events-none opacity-50'
-                                                : ''
-                                        }
-                                    />
-                                </PaginationItem>
+                                {users.links.map((link, index) => {
+                                    const isActive = link.active;
+                                    const isDisabled = link.url === null;
+                                    const isEllipsis =
+                                        link.label === '...';
 
-                                {/* Page Numbers */}
-                                {Array.from(
-                                    { length: users.last_page },
-                                    (_, i) => i + 1,
-                                ).map((page) => {
-                                    const isActive =
-                                        page === users.current_page;
-                                    const isNeighbor = Math.abs(
-                                        page - users.current_page,
-                                    ) <= 1;
-                                    const isFirstOrLast =
-                                        page === 1 ||
-                                        page === users.last_page;
-
-                                    // Show: first, last, current, and neighbors
-                                    if (
-                                        isFirstOrLast ||
-                                        isActive ||
-                                        isNeighbor
-                                    ) {
+                                    if (isEllipsis) {
                                         return (
-                                            <PaginationItem key={page}>
-                                                <PaginationLink
-                                                    href={`?page=${page}`}
-                                                    isActive={isActive}
-                                                >
-                                                    {page}
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                        );
-                                    }
-
-                                    // Show ellipsis between groups
-                                    if (
-                                        (page ===
-                                            users.current_page - 2 &&
-                                            users.current_page > 3) ||
-                                        (page ===
-                                            users.current_page + 2 &&
-                                            users.current_page <
-                                                users.last_page - 2)
-                                    ) {
-                                        return (
-                                            <PaginationItem key={page}>
+                                            <PaginationItem key={index}>
                                                 <PaginationEllipsis />
                                             </PaginationItem>
                                         );
                                     }
 
-                                    return null;
-                                })}
+                                    if (
+                                        link.label === '&laquo; Previous' ||
+                                        link.label.includes('Previous')
+                                    ) {
+                                        return (
+                                            <PaginationItem key={index}>
+                                                <PaginationPrevious
+                                                    href={
+                                                        link.url || '#'
+                                                    }
+                                                    onClick={(e) => {
+                                                        if (isDisabled) {
+                                                            e.preventDefault();
+                                                        }
+                                                    }}
+                                                    className={
+                                                        isDisabled
+                                                            ? 'pointer-events-none opacity-50'
+                                                            : ''
+                                                    }
+                                                />
+                                            </PaginationItem>
+                                        );
+                                    }
 
-                                {/* Next Button */}
-                                <PaginationItem>
-                                    <PaginationNext
-                                        href={
-                                            users.next_page_url
-                                                ? users.next_page_url
-                                                : '#'
-                                        }
-                                        onClick={(e) => {
-                                            if (!users.next_page_url) {
-                                                e.preventDefault();
-                                            }
-                                        }}
-                                        className={
-                                            !users.next_page_url
-                                                ? 'pointer-events-none opacity-50'
-                                                : ''
-                                        }
-                                    />
-                                </PaginationItem>
+                                    if (
+                                        link.label === 'Next &raquo;' ||
+                                        link.label.includes('Next')
+                                    ) {
+                                        return (
+                                            <PaginationItem key={index}>
+                                                <PaginationNext
+                                                    href={
+                                                        link.url || '#'
+                                                    }
+                                                    onClick={(e) => {
+                                                        if (isDisabled) {
+                                                            e.preventDefault();
+                                                        }
+                                                    }}
+                                                    className={
+                                                        isDisabled
+                                                            ? 'pointer-events-none opacity-50'
+                                                            : ''
+                                                    }
+                                                />
+                                            </PaginationItem>
+                                        );
+                                    }
+
+                                    return (
+                                        <PaginationItem key={index}>
+                                            <PaginationLink
+                                                href={link.url || '#'}
+                                                isActive={isActive}
+                                                onClick={(e) => {
+                                                    if (isDisabled) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                            >
+                                                {link.label
+                                                    .replace(
+                                                        /&laquo;|&raquo;/g,
+                                                        '',
+                                                    )
+                                                    .trim()}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    );
+                                })}
                             </PaginationContent>
                         </Pagination>
                     </div>

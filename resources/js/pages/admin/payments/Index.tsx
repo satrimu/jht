@@ -1,9 +1,19 @@
 import { Head } from '@inertiajs/react';
-import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Edit, Eye, Plus, Search, Trash2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
 import {
     Table,
     TableBody,
@@ -49,6 +59,9 @@ export default function Index({
     const [selectedPayment, setSelectedPayment] = useState<Payment | null>(
         null,
     );
+    const [searchPayments, setSearchPayments] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const paymentsPerPage = 10;
 
     const handleEditPayment = (payment: Payment) => {
         setSelectedPayment(payment);
@@ -63,6 +76,31 @@ export default function Index({
     const handleShowPayment = (payment: Payment) => {
         setSelectedPayment(payment);
         setIsShowModalOpen(true);
+    };
+
+    // Filtered payments based on search
+    const filteredPayments = useMemo(() => {
+        const searchLower = searchPayments.toLowerCase();
+        return payments.data.filter(payment =>
+            payment.user.full_name.toLowerCase().includes(searchLower) ||
+            payment.user.member_number?.toLowerCase().includes(searchLower) ||
+            payment.user.email?.toLowerCase().includes(searchLower) ||
+            payment.amount.includes(searchPayments)
+        );
+    }, [payments.data, searchPayments]);
+
+    // Paginated payments
+    const totalPages = Math.ceil(filteredPayments.length / paymentsPerPage);
+    const paginatedPayments = useMemo(() => {
+        const startIndex = (currentPage - 1) * paymentsPerPage;
+        const endIndex = startIndex + paymentsPerPage;
+        return filteredPayments.slice(startIndex, endIndex);
+    }, [filteredPayments, currentPage, paymentsPerPage]);
+
+    // Reset to page 1 when search changes
+    const handleSearchChange = (value: string) => {
+        setSearchPayments(value);
+        setCurrentPage(1);
     };
 
     const getStatusBadge = (status: string) => {
@@ -98,7 +136,7 @@ export default function Index({
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">
                             Payments
@@ -107,20 +145,35 @@ export default function Index({
                             Manage member payments and validations
                         </p>
                     </div>
-                    <Button
-                        onClick={() => setIsCreateModalOpen(true)}
-                        className="gap-2"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Add Payment
-                    </Button>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder="Cari member, jumlah, atau nomor..."
+                                value={searchPayments}
+                                onChange={(e) => handleSearchChange(e.target.value)}
+                                className="pl-10 md:w-72"
+                            />
+                        </div>
+                        <Button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="gap-2"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add Payment
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Content */}
                 <div className="rounded-lg border bg-card">
-                    {payments.data.length === 0 ? (
+                    {paginatedPayments.length === 0 ? (
                         <div className="flex h-32 items-center justify-center text-muted-foreground">
-                            <p>No payments found</p>
+                            <p>
+                                {searchPayments
+                                    ? 'No payments found matching your search.'
+                                    : 'No payments found'}
+                            </p>
                         </div>
                     ) : (
                         <Table>
@@ -138,7 +191,7 @@ export default function Index({
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {payments.data.map((payment) => (
+                                {paginatedPayments.map((payment) => (
                                     <TableRow key={payment.id}>
                                         <TableCell className="font-medium">
                                             #{payment.id}
@@ -231,23 +284,122 @@ export default function Index({
                     )}
                 </div>
 
-                {/* Pagination Info */}
-                {payments.total > 0 && (
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <p>
-                            Showing{' '}
-                            {(payments.current_page - 1) * payments.per_page +
-                                1}{' '}
-                            to{' '}
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex flex-col gap-4">
+                        <div className="flex justify-center">
+                            <Pagination>
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <PaginationPrevious
+                                            onClick={() =>
+                                                setCurrentPage(
+                                                    Math.max(1, currentPage - 1),
+                                                )
+                                            }
+                                            className={
+                                                currentPage === 1
+                                                    ? 'pointer-events-none opacity-50'
+                                                    : 'cursor-pointer'
+                                            }
+                                        />
+                                    </PaginationItem>
+
+                                    {Array.from(
+                                        { length: totalPages },
+                                        (_, i) => i + 1,
+                                    ).map((page) => {
+                                        const isActive = page === currentPage;
+                                        const isNeighbor =
+                                            Math.abs(page - currentPage) <= 1;
+                                        const isFirstOrLast =
+                                            page === 1 ||
+                                            page === totalPages;
+
+                                        if (
+                                            isFirstOrLast ||
+                                            isActive ||
+                                            isNeighbor
+                                        ) {
+                                            return (
+                                                <PaginationItem key={page}>
+                                                    <PaginationLink
+                                                        onClick={() =>
+                                                            setCurrentPage(
+                                                                page,
+                                                            )
+                                                        }
+                                                        isActive={isActive}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        {page}
+                                                    </PaginationLink>
+                                                </PaginationItem>
+                                            );
+                                        }
+
+                                        if (
+                                            (page ===
+                                                currentPage - 2 &&
+                                                currentPage > 3) ||
+                                            (page ===
+                                                currentPage + 2 &&
+                                                currentPage <
+                                                    totalPages - 2)
+                                        ) {
+                                            return (
+                                                <PaginationItem key={page}>
+                                                    <PaginationEllipsis />
+                                                </PaginationItem>
+                                            );
+                                        }
+
+                                        return null;
+                                    })}
+
+                                    <PaginationItem>
+                                        <PaginationNext
+                                            onClick={() =>
+                                                setCurrentPage(
+                                                    Math.min(
+                                                        totalPages,
+                                                        currentPage + 1,
+                                                    ),
+                                                )
+                                            }
+                                            className={
+                                                currentPage === totalPages
+                                                    ? 'pointer-events-none opacity-50'
+                                                    : 'cursor-pointer'
+                                            }
+                                        />
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
+                        </div>
+
+                        {/* Results info */}
+                        <div className="text-center text-sm text-muted-foreground">
+                            Menampilkan{' '}
+                            {paginatedPayments.length > 0
+                                ? (currentPage - 1) *
+                                      paymentsPerPage +
+                                  1
+                                : 0}{' '}
+                            -{' '}
                             {Math.min(
-                                payments.current_page * payments.per_page,
-                                payments.total,
+                                currentPage * paymentsPerPage,
+                                filteredPayments.length,
                             )}{' '}
-                            of {payments.total} results
-                        </p>
-                        <p>
-                            Page {payments.current_page} of {payments.last_page}
-                        </p>
+                            dari {filteredPayments.length} pembayaran
+                        </div>
+                    </div>
+                )}
+
+                {/* Pagination Info Fallback */}
+                {totalPages === 0 && payments.total > 0 && (
+                    <div className="text-center text-sm text-muted-foreground">
+                        Total {payments.total} pembayaran
                     </div>
                 )}
 

@@ -1,18 +1,29 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
 import {
     FileText,
     Users,
     CheckCircle,
     Clock,
-    User
+    User,
+    Search,
 } from 'lucide-react';
 
 interface ReportIndexProps {
@@ -20,11 +31,10 @@ interface ReportIndexProps {
         total_members: number;
         active_members: number;
         total_payments: number;
-        validated_payments: number;
         pending_payments: number;
-        rejected_payments: number;
+        terbayar_payments: number;
         total_amount: number;
-        validated_amount: number;
+        terbayar_amount: number;
         average_amount: number;
         period: string;
     };
@@ -32,6 +42,7 @@ interface ReportIndexProps {
         id: number;
         full_name: string;
         email: string;
+        total_amount?: number;
     }>;
     availableYears: number[];
     selectedYear: number;
@@ -52,6 +63,9 @@ export default function Index({
 }: ReportIndexProps) {
     const [year, setYear] = useState(selectedYear);
     const [month, setMonth] = useState<number | null>(selectedMonth);
+    const [searchMembers, setSearchMembers] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const membersPerPage = 10;
 
     const handleYearChange = (newYear: string) => {
         setYear(parseInt(newYear));
@@ -71,6 +85,42 @@ export default function Index({
             currency: 'IDR',
             minimumFractionDigits: 0
         }).format(amount);
+    };
+
+    // Filtered members based on search
+    const filteredMembers = useMemo(() => {
+        const searchLower = searchMembers.toLowerCase();
+        return members.filter(member =>
+            member.full_name.toLowerCase().includes(searchLower) ||
+            member.email.toLowerCase().includes(searchLower)
+        );
+    }, [members, searchMembers]);
+
+    // Paginated members
+    const totalPages = Math.ceil(filteredMembers.length / membersPerPage);
+    const paginatedMembers = useMemo(() => {
+        const startIndex = (currentPage - 1) * membersPerPage;
+        const endIndex = startIndex + membersPerPage;
+        return filteredMembers.slice(startIndex, endIndex);
+    }, [filteredMembers, currentPage, membersPerPage]);
+
+    // Reset to page 1 when search changes
+    const handleSearchChange = (value: string) => {
+        setSearchMembers(value);
+        setCurrentPage(1);
+    };
+
+    // Get period info
+    const getPeriodInfo = () => {
+        if (month) {
+            return `${format(new Date(year, month - 1), 'MMMM yyyy', { locale: id })}`;
+        }
+        return `${year}`;
+    };
+
+    // Calculate total amount per member for current period
+    const getMemberTotalAmount = (member: typeof members[0]) => {
+        return member.total_amount || 0;
     };
 
     return (
@@ -190,39 +240,127 @@ export default function Index({
                 {/* Members List */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Daftar Anggota</CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                            Klik nama anggota untuk melihat laporan individual
-                        </p>
+                        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <CardTitle>Daftar Anggota</CardTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    Total iuran periode {getPeriodInfo()}
+                                </p>
+                            </div>
+                            <div className="relative w-full md:w-72">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    placeholder="Cari nama atau email..."
+                                    value={searchMembers}
+                                    onChange={(e) => handleSearchChange(e.target.value)}
+                                    className="pl-10"
+                                />
+                            </div>
+                        </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="flex flex-col gap-4">
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Nama</TableHead>
                                     <TableHead>Email</TableHead>
+                                    <TableHead className="text-right">Jumlah Iuran</TableHead>
                                     <TableHead className="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {members.map(member => (
-                                    <TableRow key={member.id}>
-                                        <TableCell className="font-medium">{member.full_name}</TableCell>
-                                        <TableCell>{member.email}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => router.visit(`/admin/reports/${member.id}?year=${year}`)}
-                                            >
-                                                <User className="mr-2 h-4 w-4" />
-                                                Lihat Laporan
-                                            </Button>
+                                {paginatedMembers.length > 0 ? (
+                                    paginatedMembers.map(member => (
+                                        <TableRow key={member.id}>
+                                            <TableCell className="font-medium">{member.full_name}</TableCell>
+                                            <TableCell>{member.email}</TableCell>
+                                            <TableCell className="text-right font-medium">
+                                                {formatCurrency(getMemberTotalAmount(member))}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => router.visit(`/admin/reports/${member.id}?year=${year}`)}
+                                                >
+                                                    <User className="mr-2 h-4 w-4" />
+                                                    Lihat Laporan
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="py-8 text-center">
+                                            <p className="text-muted-foreground">
+                                                {searchMembers ? 'Anggota tidak ditemukan.' : 'Belum ada anggota.'}
+                                            </p>
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )}
                             </TableBody>
                         </Table>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center">
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                                className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                            />
+                                        </PaginationItem>
+
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                                            const isActive = page === currentPage;
+                                            const isNeighbor = Math.abs(page - currentPage) <= 1;
+                                            const isFirstOrLast = page === 1 || page === totalPages;
+
+                                            if (isFirstOrLast || isActive || isNeighbor) {
+                                                return (
+                                                    <PaginationItem key={page}>
+                                                        <PaginationLink
+                                                            onClick={() => setCurrentPage(page)}
+                                                            isActive={isActive}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            {page}
+                                                        </PaginationLink>
+                                                    </PaginationItem>
+                                                );
+                                            }
+
+                                            if (
+                                                (page === currentPage - 2 && currentPage > 3) ||
+                                                (page === currentPage + 2 && currentPage < totalPages - 2)
+                                            ) {
+                                                return (
+                                                    <PaginationItem key={page}>
+                                                        <PaginationEllipsis />
+                                                    </PaginationItem>
+                                                );
+                                            }
+
+                                            return null;
+                                        })}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        )}
+
+                        {/* Results info */}
+                        <div className="text-center text-sm text-muted-foreground">
+                            Menampilkan {paginatedMembers.length > 0 ? (currentPage - 1) * membersPerPage + 1 : 0} - {Math.min(currentPage * membersPerPage, filteredMembers.length)} dari {filteredMembers.length} anggota
+                        </div>
                     </CardContent>
                 </Card>
             </div>

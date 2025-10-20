@@ -5,16 +5,20 @@ namespace App\Providers;
 use App\Models\Category;
 use App\Models\Payment;
 use App\Models\SettingApp;
+use App\Models\User;
 use App\Observers\GlobalActivityLogger;
 use App\Observers\SettingAppObserver;
 use App\Policies\CategoryPolicy;
 use App\Policies\PaymentPolicy;
+use App\Policies\UserPolicy;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use App\Repositories\Contracts\PaymentRepositoryInterface;
 use App\Repositories\Contracts\ReportRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\PaymentRepository;
 use App\Repositories\Eloquent\ReportRepository;
+use App\Repositories\Eloquent\UserRepository;
 use App\Services\ImageService;
 use App\Services\SecurityLogService;
 use Illuminate\Support\Facades\Gate;
@@ -52,6 +56,12 @@ class AppServiceProvider extends ServiceProvider
             ReportRepositoryInterface::class,
             ReportRepository::class
         );
+
+        // Bind UserRepository interface
+        $this->app->bind(
+            UserRepositoryInterface::class,
+            UserRepository::class
+        );
     }
 
     /**
@@ -71,6 +81,10 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Payment Policy
         Gate::policy(Payment::class, PaymentPolicy::class);
+
+        // Register User Policy
+        Gate::policy(User::class, UserPolicy::class);
+
         // Share application settings globally with Inertia
         Inertia::share('setting', function (): array {
             $setting = SettingApp::first();

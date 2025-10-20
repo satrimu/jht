@@ -35,9 +35,9 @@ Route::middleware(['auth', 'verified', 'can:admin'])->group(function (): void {
 
     // Report routes
     Route::get('/admin/reports', [ReportController::class, 'index'])->name('admin.reports.index');
+    Route::get('/admin/reports/export-general', [ReportController::class, 'exportGeneral'])->name('admin.reports.export-general');
     Route::get('/admin/reports/{user}', [ReportController::class, 'show'])->name('admin.reports.show');
     Route::get('/admin/reports/{user}/export-pdf', [ReportController::class, 'exportUserPdf'])->name('admin.reports.export-pdf');
-    Route::get('/admin/reports/export-general', [ReportController::class, 'exportGeneral'])->name('admin.reports.export-general');
 
     // Application Settings
     Route::get('/admin/settingsapp', [SettingAppController::class, 'edit'])->name('setting.edit');

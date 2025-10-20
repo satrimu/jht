@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\User;
 use App\Repositories\Contracts\ReportRepositoryInterface;
+use App\Services\PdfService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ReportController extends Controller
 {
     public function __construct(
-        private readonly ReportRepositoryInterface $reportRepo
+        private readonly ReportRepositoryInterface $reportRepo,
+        private readonly PdfService $pdfService
     ) {}
 
     /**
@@ -37,11 +40,23 @@ class ReportController extends Controller
         // Get general statistics
         $generalStats = $this->reportRepo->getGeneralStats($year, $month);
 
-        // Get members list (exclude admin id 1)
+        // Get members list with total amount for selected period (exclude admin id 1)
+        /** @var Collection<int, User> $members */
         $members = User::where('id', '!=', 1)
             ->select(['id', 'full_name', 'email'])
+            ->with([
+                'payments' => function ($query) use ($year, $month) {
+                    $query->whereYear('payment_date', $year)
+                        ->when($month, fn ($q) => $q->whereMonth('payment_date', $month))
+                        ->where('status', 'terbayar');
+                }
+            ])
             ->orderBy('full_name')
-            ->get();
+            ->get()
+            ->map(function (User $member) {
+                $member->setAttribute('total_amount', (int) $member->payments->sum('amount'));
+                return $member;
+            });
 
         return Inertia::render('admin/reports/Index', [
             'generalStats' => $generalStats,
@@ -105,40 +120,21 @@ class ReportController extends Controller
             abort(404);
         }
 
-        $year = $request->get('year', now()->year);
+        $year = (int) $request->get('year', now()->year);
 
-        // Get user report data
-        $userReport = $this->reportRepo->getUserReport($user->id, $year);
-
-        // Generate PDF (we'll implement this later)
-        // For now, return JSON response
-        return response()->json([
-            'message' => 'PDF export untuk '.$user->full_name.' tahun '.$year,
-            'data' => $userReport,
-        ]);
+        // Generate and download PDF
+        return $this->pdfService->generateUserReportPdf($user, $year)->download();
     }
 
     /**
-     * Export general report to Excel/CSV
+     * Export general report to PDF
      */
     public function exportGeneral(Request $request)
     {
-        $year = $request->get('year', now()->year);
-        $month = $request->get('month');
-        $type = $request->get('type', 'yearly'); // yearly or monthly
+        $year = (int) $request->get('year', now()->year);
+        $month = $request->has('month') ? (int) $request->get('month') : null;
 
-        if ($type === 'monthly' && ! $month) {
-            return response()->json(['error' => 'Month is required for monthly export'], 400);
-        }
-
-        // Get export data
-        $exportData = $this->reportRepo->getExportData($year, $month, $type);
-
-        // Generate Excel/CSV (we'll implement this later)
-        // For now, return JSON response
-        return response()->json([
-            'message' => 'Export '.$type.' untuk tahun '.$year.($month ? ' bulan '.$month : ''),
-            'data' => $exportData,
-        ]);
+        // Generate and download PDF
+        return $this->pdfService->generateGeneralReportPdf($year, $month)->download();
     }
 }

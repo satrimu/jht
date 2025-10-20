@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Users\StoreUserRequest;
 use App\Http\Requests\Admin\Users\UpdateUserRequest;
 use App\Models\User;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\CacheService;
 use App\Services\ImageService;
 use Exception;
@@ -16,7 +17,11 @@ use Throwable;
 
 class UserController extends Controller
 {
-    public function __construct(private readonly ImageService $imageService, private readonly CacheService $cacheService) {}
+    public function __construct(
+        private readonly UserRepositoryInterface $repo,
+        private readonly ImageService $imageService,
+        private readonly CacheService $cacheService
+    ) {}
 
     public function index(Request $request)
     {
@@ -24,22 +29,7 @@ class UserController extends Controller
         $page = (int) $request->get('page', 1);
 
         // Cache for 5 minutes (300 seconds) to reduce database load
-        $users = $this->cacheService->rememberUsersList($page, $perPage, 300, fn () => User::select([
-            'id',
-            'name',
-            'email',
-            'role',
-            'member_number',
-            'full_name',
-            'phone',
-            'join_date',
-            'is_active',
-            'image', // Include image for avatar display
-            'created_at',
-            // Exclude: password, address, note, updated_at, etc.
-        ])
-            ->latest('created_at')
-            ->paginate($perPage));
+        $users = $this->cacheService->rememberUsersList($page, $perPage, 300, fn () => $this->repo->paginateWithRelations($perPage));
 
         return Inertia::render('admin/users/Index', [
             'users' => $users,
@@ -73,7 +63,7 @@ class UserController extends Controller
             }
         }
 
-        User::create($data);
+        $this->repo->create($data);
 
         $this->cacheService->clearUsersList();
 
@@ -143,7 +133,7 @@ class UserController extends Controller
             unset($data['image']);
         }
 
-        $user->update($data);
+        $this->repo->update($user, $data);
 
         // Clear users list cache keys (tags or explicit keys depending on driver)
         $this->cacheService->clearUsersList();
@@ -164,7 +154,7 @@ class UserController extends Controller
             $this->imageService->deleteImageFile($fullPath);
         }
 
-        $user->delete();
+        $this->repo->delete($user);
 
         // Clear users list cache keys
         $this->cacheService->clearUsersList();
