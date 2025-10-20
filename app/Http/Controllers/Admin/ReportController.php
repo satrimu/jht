@@ -10,6 +10,7 @@ use App\Services\PdfService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 class ReportController extends Controller
 {
@@ -113,7 +114,7 @@ class ReportController extends Controller
     /**
      * Export user report to PDF
      */
-    public function exportUserPdf(User $user, Request $request)
+    public function exportUserPdf(User $user, Request $request): Response
     {
         // Ensure user is not admin (id 1)
         if ($user->id === 1) {
@@ -123,18 +124,18 @@ class ReportController extends Controller
         $year = (int) $request->get('year', now()->year);
 
         // Generate and download PDF
-        return $this->pdfService->generateUserReportPdf($user, $year)->download();
+        return $this->pdfService->generateUserReportPdf($user, $year);
     }
 
     /**
      * Export general report to PDF
      */
-    public function exportGeneral(Request $request)
+    public function exportGeneral(Request $request): Response
     {
         $year = (int) $request->get('year', now()->year);
         $month = $request->has('month') ? (int) $request->get('month') : null;
 
         // Generate and download PDF
-        return $this->pdfService->generateGeneralReportPdf($year, $month)->download();
+        return $this->pdfService->generateGeneralReportPdf($year, $month);
     }
 }

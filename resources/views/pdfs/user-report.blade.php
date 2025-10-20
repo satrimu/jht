@@ -26,80 +26,111 @@
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             border-bottom: 2px solid #000;
             padding-bottom: 15px;
         }
 
-        .header h1 {
-            font-size: 18px;
+        .header .app-name {
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
+        }
+
+        .header .app-info {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .header h1 {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 3px;
         }
 
         .header p {
             font-size: 10px;
             margin: 2px 0;
+            color: #666;
+        }
+
+        .info-section {
+            margin-bottom: 15px;
+        }
+
+        .info-row {
+            width: 100%;
         }
 
         .user-info {
-            margin-bottom: 20px;
+            float: left;
+            width: 48%;
             background: #f5f5f5;
             padding: 12px;
             border-radius: 4px;
+            margin-right: 4%;
+            box-sizing: border-box;
         }
 
         .user-info p {
-            margin: 4px 0;
+            margin: 3px 0;
             font-size: 11px;
         }
 
-        .section-title {
-            font-size: 13px;
+        .user-info strong {
             font-weight: bold;
-            margin-top: 20px;
+            width: 70px;
+            display: inline-block;
+        }
+
+        .total-iuran {
+            float: left;
+            width: 48%;
+            background: #e8f5e9;
+            border-left: 4px solid #10b981;
+            padding: 12px;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+
+        .total-iuran p {
+            margin: 3px 0;
+            font-size: 11px;
+        }
+
+        .total-iuran .label {
+            color: #666;
+            font-size: 10px;
+        }
+
+        .total-iuran .value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #10b981;
+            margin: 5px 0;
+        }
+
+        .info-section::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 15px;
             margin-bottom: 10px;
             background: #e0e0e0;
             padding: 8px;
             border-radius: 3px;
         }
 
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .summary-card {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 3px;
-        }
-
-        .summary-card .label {
-            font-size: 10px;
-            color: #666;
-            margin-bottom: 4px;
-        }
-
-        .summary-card .value {
-            font-size: 14px;
-            font-weight: bold;
-            color: #000;
-        }
-
-        .summary-card .subtext {
-            font-size: 9px;
-            color: #999;
-            margin-top: 2px;
-        }
-
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             font-size: 10px;
         }
 
@@ -152,43 +183,8 @@
             border: 1px solid #ffeeba;
         }
 
-        .monthly-summary {
-            margin-bottom: 20px;
-        }
-
-        .monthly-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .monthly-row:nth-child(even) {
-            background: #f9f9f9;
-        }
-
-        .monthly-month {
-            width: 20%;
-            font-weight: bold;
-        }
-
-        .monthly-count {
-            width: 15%;
-            text-align: right;
-        }
-
-        .monthly-amount {
-            width: 30%;
-            text-align: right;
-        }
-
-        .monthly-terbayar {
-            width: 35%;
-            text-align: right;
-        }
-
         .footer {
-            margin-top: 30px;
+            margin-top: 20px;
             border-top: 1px solid #ddd;
             padding-top: 10px;
             text-align: center;
@@ -196,46 +192,11 @@
             color: #666;
         }
 
-        .page-break {
-            page-break-after: always;
-        }
-
-        .status-summary {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .status-box {
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 3px;
-        }
-
-        .status-box.terbayar {
-            border-left: 4px solid #10b981;
-        }
-
-        .status-box.pending {
-            border-left: 4px solid #f59e0b;
-        }
-
-        .status-box .label {
-            font-size: 10px;
-            color: #666;
-            margin-bottom: 4px;
-        }
-
-        .status-box .value {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-
-        .status-box .amount {
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #999;
             font-size: 11px;
-            color: #333;
         }
     </style>
 </head>
@@ -243,122 +204,73 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
+            <div class="app-name">{{ config('app.name') }}</div>
+            <div class="app-info">Sistem Laporan Iuran Jaminan Hari Tua</div>
             <h1>LAPORAN IURAN JAMINAN HARI TUA (JHT)</h1>
             <p>Periode: {{ $period }}</p>
-            <p>Tanggal Cetak: {{ now()->format('d F Y H:i') }}</p>
         </div>
 
-        <!-- User Info -->
-        <div class="user-info">
-            <p><strong>Nama Anggota:</strong> {{ $user->full_name }}</p>
-            <p><strong>Email:</strong> {{ $user->email }}</p>
-            <p><strong>Member Number:</strong> {{ $user->member_number ?? '-' }}</p>
-            <p><strong>Anggota Sejak:</strong> {{ $user->created_at->format('d F Y') }}</p>
-        </div>
+        <!-- Info Section (2 Columns) -->
+        <div class="info-section">
+            <!-- User Info -->
+            <div class="user-info">
+                <p><strong>Nama:</strong> {{ $user->full_name }}</p>
+                <p><strong>Email:</strong> {{ $user->email }}</p>
+                <p><strong>Member:</strong> {{ $user->member_number ?? '-' }}</p>
+                <p><strong>Sejak:</strong> {{ $user->created_at->format('d F Y') }}</p>
+            </div>
 
-        <!-- Status Summary -->
-        <div class="section-title">Ringkasan Status Pembayaran</div>
-        <div class="status-summary">
-            <div class="status-box terbayar">
-                <div class="label">Terbayar</div>
-                <div class="value">{{ $userReport['status_summary']['terbayar'] }}</div>
-                <div class="amount">Rp {{ number_format($userReport['amount_summary']['terbayar'], 0, ',', '.') }}</div>
+            <!-- Total Iuran -->
+            <div class="total-iuran">
+                <p class="label">Total Iuran Terbayar {{ $year }}</p>
+                <p class="value">Rp {{ number_format($userReport['amount_summary']['terbayar'], 0, ',', '.') }}</p>
+                <p style="font-size: 10px; color: #666;">
+                    {{ $userReport['status_summary']['terbayar'] }} terbayar / {{ $userReport['status_summary']['pending'] }} pending
+                </p>
             </div>
-            <div class="status-box pending">
-                <div class="label">Menunggu</div>
-                <div class="value">{{ $userReport['status_summary']['pending'] }}</div>
-                <div class="amount">Rp {{ number_format($userReport['amount_summary']['pending'], 0, ',', '.') }}</div>
-            </div>
-        </div>
-
-        <!-- Summary Cards -->
-        <div class="section-title">Ringkasan Pembayaran</div>
-        <div class="summary-grid">
-            <div class="summary-card">
-                <div class="label">Total Pembayaran</div>
-                <div class="value">{{ $userReport['status_summary']['total'] }}</div>
-                <div class="subtext">transaksi pembayaran</div>
-            </div>
-            <div class="summary-card">
-                <div class="label">Total Nominal</div>
-                <div class="value">Rp {{ number_format($userReport['amount_summary']['total'], 0, ',', '.') }}</div>
-                <div class="subtext">jumlah pembayaran</div>
-            </div>
-            <div class="summary-card">
-                <div class="label">Rata-rata Pembayaran</div>
-                <div class="value">
-                    @if($userReport['status_summary']['total'] > 0)
-                        Rp {{ number_format($userReport['amount_summary']['total'] / $userReport['status_summary']['total'], 0, ',', '.') }}
-                    @else
-                        Rp 0
-                    @endif
-                </div>
-                <div class="subtext">per transaksi</div>
-            </div>
-            <div class="summary-card">
-                <div class="label">Periode Laporan</div>
-                <div class="value">{{ $year }}</div>
-                <div class="subtext">tahun pelaporan</div>
-            </div>
-        </div>
-
-        <!-- Monthly Breakdown -->
-        <div class="section-title">Ringkasan Bulanan {{ $year }}</div>
-        <div class="monthly-summary">
-            <div class="monthly-row" style="background: #e0e0e0; font-weight: bold;">
-                <div class="monthly-month">Bulan</div>
-                <div class="monthly-count">Jumlah</div>
-                <div class="monthly-amount">Total</div>
-                <div class="monthly-terbayar">Terbayar</div>
-            </div>
-            @foreach($userReport['monthly_breakdown'] as $month)
-                <div class="monthly-row">
-                    <div class="monthly-month">{{ $month['month_name'] }}</div>
-                    <div class="monthly-count">{{ $month['payment_count'] }}</div>
-                    <div class="monthly-amount">Rp {{ number_format($month['total_amount'], 0, ',', '.') }}</div>
-                    <div class="monthly-terbayar">Rp {{ number_format($month['terbayar_amount'], 0, ',', '.') }}</div>
-                </div>
-            @endforeach
         </div>
 
         <!-- Payments Table -->
-        <div class="section-title">Detail Pembayaran {{ $year }}</div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 12%">Tanggal</th>
-                    <th style="width: 15%" class="text-right">Nominal</th>
-                    <th style="width: 12%" class="text-center">Status</th>
-                    <th style="width: 35%">Catatan</th>
-                    <th style="width: 26%" class="text-center">Dibuat</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($userReport['payments'] as $payment)
+        @if($userReport['payments']->count() > 0)
+            <table>
+                <thead>
                     <tr>
-                        <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') }}</td>
-                        <td class="text-right">Rp {{ number_format($payment->amount, 0, ',', '.') }}</td>
-                        <td class="text-center">
-                            @if($payment->status === 'terbayar')
-                                <span class="badge badge-terbayar">Terbayar</span>
-                            @else
-                                <span class="badge badge-pending">Menunggu</span>
-                            @endif
-                        </td>
-                        <td>{{ $payment->notes ?? '-' }}</td>
-                        <td class="text-center">{{ \Carbon\Carbon::parse($payment->created_at)->format('d/m/Y H:i') }}</td>
+                        <th style="width: 12%">Tanggal</th>
+                        <th style="width: 18%" class="text-right">Nominal</th>
+                        <th style="width: 12%" class="text-center">Status</th>
+                        <th style="width: 42%">Catatan</th>
+                        <th style="width: 16%" class="text-center">Dibuat</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center">Tidak ada pembayaran dalam tahun {{ $year }}</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($userReport['payments'] as $payment)
+                        <tr>
+                            <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') }}</td>
+                            <td class="text-right">Rp {{ number_format($payment->amount, 0, ',', '.') }}</td>
+                            <td class="text-center">
+                                @if($payment->status === 'terbayar')
+                                    <span class="badge badge-terbayar">Terbayar</span>
+                                @else
+                                    <span class="badge badge-pending">Menunggu</span>
+                                @endif
+                            </td>
+                            <td>{{ $payment->notes ?? '-' }}</td>
+                            <td class="text-center">{{ \Carbon\Carbon::parse($payment->created_at)->format('d/m/Y H:i') }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @else
+            <div class="empty-state">
+                Tidak ada pembayaran dalam tahun {{ $year }}
+            </div>
+        @endif
 
         <!-- Footer -->
         <div class="footer">
-            <p>Dokumen ini dicetak secara otomatis oleh sistem Jaminan Hari Tua (JHT)</p>
+            <p>Dokumen ini dicetak secara otomatis oleh sistem {{ config('app.name') }}.</p>
+            <p>Data yang ditampilkan dalam dokumen ini berdasarkan keadaan nyata pada database.</p>
+            <p>Dokumen ini hanya untuk keperluan internal.</p>
             <p>Waktu Cetak: {{ now()->format('d F Y H:i:s') }}</p>
         </div>
     </div>

@@ -4,15 +4,15 @@ namespace App\Services;
 
 use App\Models\Payment;
 use App\Models\User;
-use Spatie\LaravelPdf\Facades\Pdf;
-use Spatie\LaravelPdf\PdfBuilder;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Symfony\Component\HttpFoundation\Response;
 
 class PdfService
 {
     /**
      * Generate user report PDF
      */
-    public function generateUserReportPdf(User $user, int $year): PdfBuilder
+    public function generateUserReportPdf(User $user, int $year): Response
     {
         // Get user report data
         $userReport = $this->getUserReportData($user->id, $year);
@@ -21,20 +21,26 @@ class PdfService
         $period = "Tahun $year";
 
         // Generate PDF
-        return Pdf::view('pdfs.user-report', [
+        $pdf = Pdf::loadView('pdfs.user-report', [
             'user' => $user,
             'userReport' => $userReport,
             'year' => $year,
             'period' => $period,
-        ])
-            ->format('A4')
-            ->name("Laporan-{$user->full_name}-{$year}.pdf");
+        ]);
+
+        // Set paper size and orientation
+        $pdf->setPaper('A4', 'portrait');
+
+        // Generate filename
+        $filename = "Laporan-{$user->full_name}-{$year}.pdf";
+
+        return $pdf->download($filename);
     }
 
     /**
      * Generate general report PDF
      */
-    public function generateGeneralReportPdf(int $year, ?int $month = null): PdfBuilder
+    public function generateGeneralReportPdf(int $year, ?int $month = null): Response
     {
         // Get general stats
         $generalStats = $this->getGeneralStats($year, $month);
@@ -49,19 +55,23 @@ class PdfService
         $period = $month ? "Bulan $month Tahun $year" : "Tahun $year";
 
         // Generate PDF
-        $monthStr = $month ? str_pad((string) $month, 2, '0', STR_PAD_LEFT) : 'Tahunan';
-
-        return Pdf::view('pdfs.general-report', [
+        $pdf = Pdf::loadView('pdfs.general-report', [
             'generalStats' => $generalStats,
             'monthlyBreakdown' => $monthlyBreakdown,
             'members' => $members,
             'year' => $year,
             'month' => $month,
             'period' => $period,
-        ])
-            ->format('A4')
-            ->landscape()
-            ->name("Laporan-Umum-{$year}-{$monthStr}.pdf");
+        ]);
+
+        // Set paper size and orientation
+        $pdf->setPaper('A4', 'landscape');
+
+        // Generate filename
+        $monthStr = $month ? str_pad((string) $month, 2, '0', STR_PAD_LEFT) : 'Tahunan';
+        $filename = "Laporan-Umum-{$year}-{$monthStr}.pdf";
+
+        return $pdf->download($filename);
     }
 
     /**
@@ -71,10 +81,10 @@ class PdfService
     {
         $user = User::findOrFail($userId);
 
-        // Get all payments for the year
+        // Get all payments for the year - sorted ascending by date
         $payments = Payment::where('user_id', $userId)
             ->whereYear('payment_date', $year)
-            ->orderBy('payment_date', 'desc')
+            ->orderBy('payment_date', 'asc')
             ->get();
 
         // Monthly breakdown for user
